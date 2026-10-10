@@ -1,0 +1,14 @@
+# Ignore backend and data from Vercel static deployment
+backend/
+models/
+datasets/
+data/
+docs/
+tests/
+*.py
+*.ipynb
+*.db
+*.sqlite
+*.keras
+*.zip
+*.bak
