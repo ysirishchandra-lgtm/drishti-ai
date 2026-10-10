@@ -35,7 +35,12 @@ The repository is structured to enable parallel, independent development across 
 
 ```
 drishti-ai/
-├── frontend/             # React + Vite application (Ashwidha)
+├── frontend/             # Original clean, non-3D frontend (Ashwidha)
+│   ├── index.html        # Semantic structure, navigation & screening workspace
+│   ├── styles.css        # Clean responsive styling & design tokens
+│   ├── app.js            # Client-side validation, preview, & sample workflow
+│   ├── README.md         # Frontend guide & integration specifications
+│   └── PROJECT_BOOK.md   # Frontend prototype log
 ├── backend/              # FastAPI REST backend (Sirish)
 │   ├── app/
 │   │   ├── api/          # Route handlers (v1 endpoints)
@@ -57,47 +62,54 @@ drishti-ai/
 
 ---
 
-## 4. Getting Started (Backend)
+## 4. Running the Application Locally
+
+You can run the application either as a **standalone frontend** or as a **unified FastAPI service** (FastAPI serves both the API and the static frontend).
 
 ### Prerequisites
 - Python 3.10+ (tested on Python 3.13)
-- Git
-
-### 1. Set Up Python Virtual Environment
-```bash
-# Navigate to backend directory
-cd backend
-
-# Create virtual environment
-python -m venv .venv
-
-# Activate virtual environment
-# Windows PowerShell:
-.venv\Scripts\Activate.ps1
-# Windows Command Prompt:
-.venv\Scripts\activate.bat
-# Linux / macOS:
-source .venv/bin/activate
-```
-
-### 2. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Run FastAPI Backend Server
-```bash
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
-
-### 4. Interactive API Documentation
-- **Swagger UI:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- **ReDoc:** [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
-- **Service Health Check:** [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
+- Modern web browser (Chrome, Firefox, Edge, Safari)
 
 ---
 
-## 5. API Endpoints Overview
+### Option A: Standalone Frontend (Port 8080)
+
+Run the static web server directly from the `frontend` folder:
+
+```bash
+python -m http.server 8080 --directory frontend
+```
+- Open [http://127.0.0.1:8080](http://127.0.0.1:8080) in your browser.
+- You can also open `frontend/index.html` directly in any modern browser without a server.
+
+---
+
+### Option B: Unified Server via FastAPI (Port 8000)
+
+Start the FastAPI application. It automatically mounts and serves the `frontend` directory at the root URL `/` alongside the API routes:
+
+```bash
+cd backend
+.venv\Scripts\activate      # On Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+- **Unified Web Application:** [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+- **API Swagger Documentation:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **Health Check Endpoint:** [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
+
+---
+
+## 5. Automated Testing
+
+Run the automated test suite:
+```bash
+backend\.venv\Scripts\python -m pytest backend/tests
+```
+All 20 unit and integration tests validate health checks, real fundus image uploads, technical usability heuristics, corrupt image rejections, and honest unavailable model reporting.
+
+---
+
+## 6. API Endpoints Overview
 
 | Method | Endpoint | Description | Status |
 |---|---|---|---|
@@ -111,8 +123,8 @@ See [`docs/api-contract.md`](docs/api-contract.md) for full request/response sch
 
 ---
 
-## 6. Development Guidelines for the Team
+## 7. Current Project Status & Model Boundary
 
-- **Frontend (Ashwidha):** Connect to `http://127.0.0.1:8000` with CORS preconfigured for `http://localhost:5173`.
-- **AI/ML (Rudra):** Implement `app/services/model_service.py` following the documented abstract interface. Never return synthetic predictions when a verified model is absent.
-- **QA (Kaustub):** Run tests using `pytest backend/tests` and monitor edge-case handling for corrupted, oversized, and non-image files.
+- **Image Ingestion & Usability Heuristics:** Fully operational. Checks file size, magic bytes, Pillow decode, dimensions, mean brightness, and contrast std.
+- **Trained AI Model:** **Not yet developed.** When analysis is triggered, the system reports `model_status: "not_configured"` honestly without fabricating predictions or confidence values.
+- **Explainability (Grad-CAM):** The interface is pre-wired to display side-by-side heatmaps once verified PyTorch/ONNX model weights and convolutional hooks are connected by the AI lead (Rudra).

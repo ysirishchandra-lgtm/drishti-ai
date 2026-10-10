@@ -93,8 +93,8 @@ DRISHTI-AI targets primary triage and referral management, functioning as a clin
 
 - **Local Repository:** `D:\drishti-ai`
 - **Default Branch:** `main`
-- **Git Remote:** To be linked to team lead's GitHub repository. (No push performed until user provides remote URL)
-- **Status:** Initialized locally with clean branch state.
+- **Git Remote:** `https://github.com/ysirishchandra-lgtm/drishti-ai.git` (origin/main)
+- **Status:** Initialized, linked, and pushed upstream (`411e6be`).
 
 ---
 
@@ -289,8 +289,8 @@ Live Server Smoke Test:
 ## 15. Blockers & Dependencies
 
 - **Blocker 1 (AI Model):** Awaiting Rudra to identify and provide verified model weights (e.g. PyTorch/ONNX checkpoint) and preprocessing specifications.
-- **Blocker 2 (Remote Repository):** Waiting for team lead (Sirish) to provide the GitHub repository remote URL for upstream pushing.
-- **No blocking issues on backend or API contracts.**
+- **Resolved:** GitHub remote repository linked and pushed to `origin/main`.
+- **Zero blocking issues on backend, database, or API contracts. Development setup is verified ready for frontend.**
 
 ---
 
@@ -327,3 +327,271 @@ Live Server Smoke Test:
   - Added CORS configuration for `http://localhost:5173`.
   - Executed test suite with 14 automated tests; 100% passed.
   - Verified live server with `uvicorn` and confirmed `GET /health` and `GET /docs`.
+  - Initialized `datasets/aptos2019/` directory structure and added `datasets/` safeguard to `.gitignore`.
+  - Conducted Phase 1 dataset preflight checks (disk space: 563 GB free, verified Git exclusion).
+  - Installed Kaggle CLI in `backend/.venv` and verified OAuth authentication and APTOS 2019 access.
+  - Successfully downloaded and verified `datasets/aptos2019/train.csv` (3,662 rows; Grade 0: 1805, Grade 1: 370, Grade 2: 999, Grade 3: 193, Grade 4: 295).
+  - Downloaded official competition archive `aptos2019-blindness-detection.zip` (10,215,289,875 bytes).
+  - Passed ZIP archive CRC integrity test (`testzip()` 0 errors).
+  - Selectively extracted all 3,662 training images into `datasets/aptos2019/train_images/` (skipped 1,928 unlabelled test images).
+  - Verified 1-to-1 label-to-image matching (3,662/3,662 IDs match, 0 missing, 0 unmatched).
+  - Completed PIL image readability audit: 3,662/3,662 verified readable (0 corrupt files).
+  - Completed dataset integrity audit: identified 123 duplicate image groups (251 images), with 30 groups possessing inter-rater conflicting diagnostic labels.
+  - Documented dataset readiness and deduplication requirements for Rudra's train/val split.
+  - Phase 5: Independently verified duplicate audit via MD5 and SHA-256 byte hashing (3,534 unique hashes, 123 duplicate groups, 251 images, 30 conflicting groups with 62 images).
+  - Confirmed patient-level IDs are absent from APTOS `train.csv`; documented that patient-level cross-eye leakage cannot be ruled out from metadata alone.
+  - Generated reproducible audit report: `datasets/aptos2019/duplicates_audit.csv`.
+  - Built group-leakage-free, stratified dataset manifest: `datasets/aptos2019/dataset_manifest.csv` (Train: 2932, Val: 369, Test: 361) preserving natural class distribution.
+  - Generated class-wise manifests in `datasets/aptos2019/classes/class_0.csv` to `class_4.csv` without duplicating multi-gigabyte image files.
+  - Formulated class-balanced training strategy (class-weighted loss + WeightedRandomSampler + training-only geometric/color jitter augmentation; unaugmented evaluation sets).
+  - Phase 6: Executed comprehensive manifest verification with 100% PASS across all 9 integrity checks.
+  - Formulated clean evaluation manifest (`datasets/aptos2019/dataset_manifest_clean_eval.csv`) quarantining 62 conflicting images (Clean Train: 2883, Clean Val: 362, Clean Test: 355).
+  - Created physical class-wise image organization under `datasets/aptos2019/classwise_images/` without altering or deleting originals:
+    - `class_0_no_dr`: 1,801 images
+    - `class_1_mild`: 360 images
+    - `class_2_moderate`: 976 images
+    - `class_3_severe`: 180 images
+    - `class_4_proliferative_dr`: 283 images
+    - `unresolved_conflicting_labels`: 62 images (isolated quarantine for ambiguous ground truth).
+  - Byte-verified all 3,662 placed images against sources with 0 errors. All datasets confirmed Git-ignored.
+  - Acquired official OIA-DDR dataset (13,673 raw images across train, valid, test) from official Google Drive source.
+  - Reconstructed 14.10 GB archive from 10 split parts and verified archive CRC32 integrity with 0 errors.
+  - Conducted cryptographic SHA-256 deduplication: discovered 13,573 unique images, 97 concordant duplicate groups (197 files), and 0 conflicting label groups.
+  - Organized `datasets/ddr/cleaned_all/` with 13,573 unique images (Class 0: 6166, Class 1: 630, Class 2: 4477, Class 3: 236, Class 4: 913, Unresolved/Ungradable: 1151).
+  - Constructed exact class-balanced dataset `datasets/ddr/balanced/` with 236 unique images per class (total: 1,180 images) sequentially numbered `1.jpg` to `236.jpg` using seed 42.
+  - Generated complete manifests: `dataset_manifest.csv`, `duplicate_audit.csv`, and `balanced_manifest.csv`. All datasets confirmed Git-ignored.
+  - Conducted DDR Balanced Dataset Split Integrity Audit:
+    - Analyzed split origins of the 1,180 balanced images: 578 from Official Train (49.0%), 245 from Official Valid (20.8%), 357 from Official Test (30.3%).
+    - Detected critical split leakage risk: Grade 3 (236 images in balanced) consumes 100% of all Grade 3s across Train (118), Valid (47), and Test (71).
+    - Established strict split integrity rule: `balanced/` must NOT be used directly as a training pool; generated `balanced_split_manifest.csv` and `cleaned_official_split_manifest.csv`.
+    - Formulated leak-free split recommendation: maximum clean balanced training subset strictly within Official Train is 118 images/class (590 total), or full-train training (6,260 images) using WeightedRandomSampler.
+- **2026-10-10 (Day 2 - 5-Class 500/Class Expansion Phase):**
+  - Evaluated existing image inventory across APTOS (177 unique clean Grade 3) and DDR (236 unique clean Grade 3); identified a 87-image deficit to reach 500 genuine Severe DR (Grade 3) images without artificial duplication or synthetic data.
+  - Ingested official IDRiD Disease Grading dataset (516 images) under CC BY 4.0 license via Kaggle CLI.
+  - Performed cryptographic SHA-256 deduplication and cross-dataset collision audit across 17,851 candidate images; identified zero cross-dataset collisions.
+  - Audited IDRiD internal duplicates: identified 6 duplicate groups, successfully quarantined 3 discordant duplicate groups (including cross-split discordant pair `train IDRiD_118 (Grade 0)` vs `test IDRiD_064 (Grade 3)`) and excluded redundant concordant duplicates.
+  - Ingested and audited Messidor-2 benchmark (1,744 images, 75 Grade 3) as verified reserve dataset.
+  - Constructed final balanced dataset in `D:\drishti-ai\datasets\balanced_5class_2500\`:
+    - `class_0_no_dr`: Exactly 500 images (APTOS: 250, DDR: 250)
+    - `class_1_mild`: Exactly 500 images (APTOS: 250, DDR: 250)
+    - `class_2_moderate`: Exactly 500 images (APTOS: 250, DDR: 250)
+    - `class_3_severe`: Exactly 500 images (APTOS: 177, DDR: 236, IDRiD: 87)
+    - `class_4_proliferative_dr`: Exactly 500 images (APTOS: 250, DDR: 250)
+    - Total: Exactly 2,500 unique, genuine fundus images.
+  - Implemented sequential numbering `1.ext` to `500.ext` within each class folder while preserving original filenames in manifest.
+  - Preserved official train, validation, and test splits (Train: 1,886 [75.4%], Valid: 247 [9.9%], Test: 367 [14.7%]); zero leakage from validation/test into training.
+  - Generated complete documentation and manifests:
+    - `balanced_2500_manifest.csv` (2,500 rows with full clinical, source URL, license, split, and SHA-256 metadata)
+    - `duplicate_audit.csv` (1,164 quarantined images, including DDR Grade 5 ungradables, APTOS discordant duplicates, and IDRiD conflicting pairs)
+    - `source_dataset_summary.csv`
+    - `class_count_summary.csv`
+    - `docs/split_integrity_report.md` (and co-located in dataset folder)
+    - `docs/dataset_audit_report.md` (and co-located in dataset folder)
+  - Executed automated PIL two-pass verification on all 2,500 images: 100% verified readable, 0 corrupt files.
+  - Preserved original datasets and existing manifests without alteration; confirmed all datasets remain Git-ignored.
+- **2026-10-10 (Day 2 - Frontend & Backend Integration Milestone):**
+  - Inspected complete workspace and located `drishti-ai-prototype (1).zip`.
+  - Extracted prototype into `frontend/` safely without modifying existing backend assets or datasets.
+  - Verified existing DRISHTI-AI backend (`FastAPI 0.115+`, SQLite persistence, image validation heuristics).
+  - Confirmed AI classification model and Grad-CAM explainability modules have not been developed yet.
+  - Expanded CORS allowed origins in `backend/app/main.py` to include `localhost:8080`, `localhost:5173`, `localhost:3000`, `localhost:8000`.
+  - Mounted static frontend files in FastAPI at `/` for seamless single-port deployment while supporting standalone dev server.
+  - Integrated `frontend/app.js` with live backend APIs:
+    - Real-time `GET /health` monitoring with pulsing connectivity badge (`🟢 Backend: Connected (v0.1.0)`).
+    - `POST /api/v1/screenings/upload` with progress bar, file validation, and error banner with retry controls.
+    - `POST /api/v1/screenings/{id}/analyze` returning honest `model_status: "not_configured"` without fake predictions.
+  - Connected technical usability heuristics (`width`, `height`, `channels`, `mean_brightness`, `contrast_std`, `heuristic_status`) with prominent non-clinical disclaimer.
+  - Implemented 5-class DR architecture in the UI (`No DR`, `Mild`, `Moderate`, `Severe`, `Proliferative DR`) ready for future model weights.
+  - Implemented Grad-CAM placeholder and pre-wired side-by-side comparison container for future activation maps.
+  - Created automated test suite `backend/tests/test_frontend_integration.py`; achieved 21/21 passing tests (100% pass rate).
+  - Executed live end-to-end HTTP integration tests with real APTOS fundus image (`002c21358ce6.png`) and verified upload (201 Created) and analysis (200 OK, honest unconfigured state).
+  - Verified edge case rejections: corrupt files (400), sub-200px dimensions (400), non-image files (415).
+  - Verified standalone frontend server on port 8080 and visual browser rendering.
+
+---
+
+## 18. Frontend & Backend Integration Details
+
+### Architecture & Network Flow:
+```
+[ User Browser / Technician Dashboard ]
+         │ (Port 8080 Standalone HTTP or Port 8000 Mounted)
+         ▼
+[ Vanilla JS Frontend: app.js + styles.css + index.html ]
+         │
+         ├─── GET /health ──────────────► [ Health Check & Status Pill ]
+         │
+         ├─── POST /api/v1/screenings/upload (Multipart)
+         │    │
+         │    ▼
+         │    [ FastAPI Ingestion ]
+         │    ├── ImageValidationService (Magic bytes, Pillow, Heuristics)
+         │    └── SQLite DB (Persistent screening record)
+         │
+         └─── POST /api/v1/screenings/{id}/analyze
+              │
+              ▼
+              [ Model Service Boundary (model_service.py) ]
+              └── Status: 'not_configured' -> Honest Unavailable Message
+```
+
+### API Endpoints Connected:
+1. `GET /health`:
+   - Response: `{"status": "ok", "project": "DRISHTI-AI", "version": "0.1.0", "model_status": "not_configured", "supported_classes": ["No DR", "Mild", "Moderate", "Severe", "Proliferative DR"], "timestamp": "..."}`
+   - UI Mapping: Header badge `🟢 Backend: Connected (v0.1.0)` + Model status pill `Model: Awaiting Weights`.
+2. `POST /api/v1/screenings/upload`:
+   - Request: `multipart/form-data` with `file: <binary>`.
+   - Response: `ScreeningUploadResponse` with `screening_id`, `image_quality` heuristics, `model_status: "not_configured"`.
+   - UI Mapping: Checklist items, technical heuristics table, resolution, illumination brightness, and contrast metrics.
+3. `POST /api/v1/screenings/{screening_id}/analyze`:
+   - Response: `ScreeningAnalyzeResponse` with `model_status: "not_configured"`, `analysis_available: false`, `prediction: null`, `gradcam_available: false`.
+   - UI Mapping: Honest "Awaiting Model Weights" state, 5-class distribution list, and Grad-CAM explanation placeholder.
+
+### Files Modified & Created:
+- `backend/app/main.py`: Updated CORS allowed origins (`8080`, `5173`, `3000`, `8000`) and mounted frontend static directory at `/`.
+- `frontend/index.html`: Added backend status badge, upload progress bar, error banner, 5-class distribution breakdown, and Grad-CAM comparison container.
+- `frontend/styles.css`: Added styles for connectivity badge, progress animation, error alerts, heuristics table, and 5-class probability meters.
+- `frontend/app.js`: Re-architected for genuine REST API communication with FastAPI, error handling, retry controls, and honest model states.
+- `backend/tests/test_frontend_integration.py`: Created end-to-end integration test suite covering asset serving, CORS, real image uploads, and analysis triggers.
+
+### Execution & Test Evidence:
+1. **Automated Test Suite:**
+   ```bash
+   backend\.venv\Scripts\python -m pytest backend/tests
+   # Result: 21 passed in 4.66s
+   ```
+2. **Live Backend Server Execution:**
+   ```bash
+   uvicorn app.main:app --host 127.0.0.1 --port 8000
+   # Result: Started on http://127.0.0.1:8000, database schema initialized.
+   ```
+3. **Live Fundus Image Upload Verification:**
+   - Sample image: `datasets/aptos2019/classwise_images/class_0_no_dr/002c21358ce6.png`
+   - Upload Status: `201 Created`
+   - Screening ID: `30faa20b-4c1e-418c-968f-b78df4c5c10d`
+   - Heuristics: Resolution `1050x1050 px`, Mean Brightness `85.5`, Contrast Std `46.5`, Heuristic Status `acceptable`.
+4. **Live Inference Trigger Verification:**
+   - Analysis Status: `200 OK`
+   - Payload: `analysis_available: false`, `prediction: null`, `model_status: "not_configured"`.
+   - Message: `"Diabetic Retinopathy AI model is not configured. Awaiting verified model weights and evaluation from AI lead (Rudra)."`
+5. **Live Edge Case Validation:**
+   - Non-image upload (`fake.jpg`): `HTTP 415 Unsupported Media Type`
+   - Corrupted image bytes: `HTTP 400 Bad Request`
+   - Sub-minimum dimensions (`100x100 px`): `HTTP 400 Bad Request`
+6. **Frontend Server Execution:**
+   - Command: `python -m http.server 8080 --directory frontend`
+   - Browser Verification: Landing page rendered with `🟢 Backend: Connected (v0.1.0)`, interactive workspace operational.
+
+### Missing Components & Recommended Integration Steps:
+1. **Trained DR Model:**
+   - Place verified weights (PyTorch `.pth` or ONNX `.onnx`) in `models/`.
+   - Implement `_load_model()` and `predict()` in `backend/app/services/model_service.py`.
+   - Verify class probabilities align with target 5 classes: `No DR`, `Mild`, `Moderate`, `Severe`, `Proliferative DR`.
+2. **Clinical Image-Quality Gate:**
+   - Integrate dedicated quality classifier (e.g. EyePACS quality model or MCF) to evaluate optic disc / macula visibility and gradeability beyond simple illumination heuristics.
+3. **Grad-CAM Explainability Pipeline:**
+   - Hook into the final convolutional layer of the trained model in `model_service.py:generate_gradcam()`.
+   - Return JPEG bytes for overlay visualization beside original fundus photograph.
+
+---
+
+## 19. React + Vite + TypeScript 3D Frontend Migration Milestone
+
+### Goal & Motivation:
+Upgrade the DRISHTI-AI hackathon frontend from static prototype assets into a modern, modular **React 18 + Vite 5 + TypeScript** single-page application integrating the enhanced 3D visual language from `drishti-ai-3d-frontend.zip`, Three.js interactive WebGL fundus rendering, and componentized state management.
+
+### Component Architecture (`frontend/src/`):
+- `types/api.ts`: Typed TypeScript contracts for backend schemas (`HealthResponse`, `ImageQualityMetrics`, `ScreeningUploadResponse`, `ScreeningAnalyzeResponse`, `ScreeningRecord`).
+- `services/apiService.ts`: Centralized, typed API client supporting both relative Vite proxy development and direct backend access.
+- `components/Navbar.tsx`: Sticky glassmorphic navigation with live backend polling indicator (`🟢 Backend: Connected (v0.1.0)` / `🔴 Offline`) and responsive mobile menu.
+- `components/Hero.tsx`: High-impact landing presentation embedding the interactive 3D RetinaViewer and primary triage action triggers.
+- `components/RetinaViewer.tsx`: Interactive Three.js WebGL canvas rendering a 3D hemispherical eye fundus cup, procedural vascular branching, optic disc glow, orbital rotation, mouse/touch drag controls, and a toggleable explainability layer. Fully accessible with fallback for touch devices and `prefers-reduced-motion`.
+- `components/FeatureCards.tsx`: 4 core product capability cards with CSS 3D perspective mouse tilt and elevated z-space icon geometry.
+- `components/Workflow.tsx`: 5-stage clinical decision support pipeline presentation (Upload &rarr; Quality Heuristics &rarr; AI Analysis &rarr; Explainability &rarr; Clinical Review).
+- `components/UploadPanel.tsx`: Interactive fundus photograph intake panel with drag-and-drop, client-side sanity checks (JPEG, PNG, WebP &le;15 MB, min 200&times;200 px), upload progress bar, error banner with retry controls, and live checklist indicators.
+- `components/ResultsPanel.tsx`: Structured results dashboard presenting genuine technical usability heuristics (dimensions, illumination brightness, contrast standard deviation, aspect ratio, heuristic status), honest "Awaiting Model Weights" state, 5-class distribution breakdown, and pre-wired side-by-side Grad-CAM comparison container.
+- `components/Footer.tsx`: Branding, team attribution, and prominent research disclaimer.
+
+### 3D Visual & Interactive Features:
+1. **Three.js Interactive Fundus Mesh:** 3D retinal backwall with procedural gradient shader texture, optic disc highlight, and 3D Bezier tube vasculature.
+2. **Interactive Rotation & Orbit:** Users can drag or swipe to rotate the 3D retinal model in real-time.
+3. **Perspective Mouse Tilt:** Panels and feature cards smoothly tilt in 3D perspective based on mouse position with cubic-bezier damping.
+4. **Scroll Reveal Animations:** IntersectionObserver triggers 3D entry transitions as sections enter the viewport.
+5. **Accessibility & Reduced Motion:** Touch devices and users with `prefers-reduced-motion` receive a graceful static presentation without jarring animations.
+
+### Verification & Test Evidence:
+1. **TypeScript & Bundler Build:**
+   ```bash
+   npm run build
+   # Result: tsc && vite build -> 0 errors, built in 5.92s (dist/ generated)
+   ```
+2. **Backend & Bundle Test Suite:**
+   ```bash
+   backend\.venv\Scripts\python -m pytest backend/tests
+   # Result: 20 passed in 4.92s
+   ```
+3. **Vite Development Server Execution:**
+   - Started on `http://127.0.0.1:5173/` with proxy to backend port 8000. Verified HTTP 200.
+4. **Unified FastAPI Serving Execution:**
+   - FastAPI mounts `frontend/dist/` at root `/`. Verified HTTP 200 on `http://127.0.0.1:8000/`.
+
+---
+
+## 20. Frontend Replacement with Original Clean Prototype & 3D Implementation Removal
+
+### Goal & Motivation:
+Replace the experimental React/Vite/Three.js 3D frontend with the original, clean, non-3D frontend from `drishti-ai-prototype (1).zip`. Restore the intended lightweight, accessible prototype interface without Three.js, WebGL canvases, or 3D animations, while preserving the repository's backend, datasets, test coverage, and historical engineering logs.
+
+### Scope of Changes:
+1. **Frontend Backup:**
+   - Full backup of the previous frontend directory created outside the repository before any file deletions (`scratch/backup_frontend/`).
+2. **ZIP Extraction & Placement:**
+   - Source archive: `drishti-ai-prototype (1).zip` (SHA256 verified).
+   - Extracted and deployed to `frontend/`:
+     - `frontend/index.html` (Semantic structure, hero illustration, workflow, upload & results panels)
+     - `frontend/styles.css` (Clean CSS design system, responsive breakpoints, cards, status badges)
+     - `frontend/app.js` (Client-side file intake, validation, preview, simulated demo workflow)
+     - `frontend/README.md` (Frontend documentation and integration guide)
+     - `frontend/PROJECT_BOOK.md` (Frontend prototype history)
+3. **Deletions & 3D Implementation Cleanup:**
+   - Removed all discarded 3D-specific directories and files:
+     - `frontend/src/` (including `RetinaViewer.tsx`, `Hero.tsx`, `FeatureCards.tsx`, `Workflow.tsx`, `UploadPanel.tsx`, `ResultsPanel.tsx`, etc.)
+     - `frontend/node_modules/`
+     - `frontend/dist/`
+     - `frontend/legacy-vanilla/`
+     - `frontend/package.json`
+     - `frontend/package-lock.json`
+     - `frontend/tsconfig.json`
+     - `frontend/tsconfig.node.json`
+     - `frontend/vite.config.ts`
+4. **Audit for 3D Code and Dependencies:**
+   - Comprehensive audit across `frontend/` searching for `three`, `webgl`, `orbit`, `canvas`, `3d`, `fiber`, `camera`, `scene`, `geometry`, `shader`.
+   - Results: **0 matches** found in the frontend deliverable.
+   - Retinal graphic is an ordinary 2D SVG vector illustration with soft gradients, explicitly labeled "Illustration" and "Explainability concept · Not generated by a trained model".
+
+### Verification & Testing Evidence:
+1. **File Integrity Verification:**
+   - SHA256 hashes of all 5 frontend files match the source ZIP archive with 100% fidelity.
+2. **JavaScript Syntax Verification:**
+   - Executed `node -c frontend/app.js` -> 0 syntax errors.
+3. **Static Asset Resolution:**
+   - `index.html` links correctly resolved to `styles.css` and `app.js`.
+   - All section anchor IDs (`#home`, `#how-it-works`, `#features`, `#workspace`, `#integration`, `#main`) verified present.
+4. **Standalone Server Execution:**
+   - Ran `python -m http.server 8080 --directory frontend`.
+   - Verified HTTP 200 on `http://127.0.0.1:8080/`, `styles.css` (21310 bytes), and `app.js` (9285 bytes).
+5. **FastAPI Unified Static Mount:**
+   - `backend/app/main.py` static mount verified serving `frontend/index.html` directly at root `/`.
+6. **Backend & Integration Automated Test Suite:**
+   - Ran `pytest backend/tests`: **20 passed in 3.36s** (`test_api.py` and `test_frontend_integration.py`).
+7. **Medical AI Honesty Verification:**
+   - Reconfirmed that diabetic retinopathy classification model is **not yet developed**.
+   - Live upload checks perform browser-side dimension checks, showing honest `Model not connected` and `Not available` states without fabricating confidence numbers or lesion detections.
+   - Sample flow explicitly stamped `SIMULATED DEMO` with prominent disclaimers.
+
+### Next Steps for Model & Explainability Integration:
+1. AI lead (Rudra) delivers validated DR classification model weights (5-class: No DR, Mild, Moderate, Severe, Proliferative DR).
+2. Wire `_load_model()` in `backend/app/services/model_service.py`.
+3. Connect Grad-CAM hook to the final convolutional layer of the trained architecture.
+4. Update frontend to consume real predictions from `POST /api/v1/screenings/{id}/analyze`.
+
