@@ -38,39 +38,39 @@
         <p class="hero-description">A transparent interface concept for diabetic retinopathy screening from retinal fundus images, with image checks and explainability designed into the workflow.</p>
         <div class="hero-actions">
           <a class="button button-primary" href="#workspace"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L7 8m5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Upload fundus image <span aria-hidden="true">→</span></a>
-          <button class="button button-secondary" id="trySampleTop"><span class="play-icon" aria-hidden="true">▶</span> View sample demo</button>
+          <button class="button button-secondary" id="watchIntroTopBtn" type="button"><span class="play-icon" aria-hidden="true">▶</span> Watch Cinematic Intro</button>
+          <button class="button button-secondary" id="trySampleTop"><span class="play-icon" aria-hidden="true">🔬</span> View sample demo</button>
         </div>
         <div class="hero-note"><span class="note-icon">i</span><span>Prototype only. No clinical diagnosis is produced by this website.</span></div>
       </div>
-      <div class="hero-visual" aria-label="Illustrative retinal image and explainability visualization">
-        <div class="visual-topline"><span class="live-indicator"></span> VISUAL EXPLANATION PREVIEW <span class="sample-tag">SAMPLE</span></div>
-        <div class="retina-stage">
-          <svg class="retina-svg" viewBox="0 0 420 420" role="img" aria-label="Illustrative retina graphic, not a patient image">
-            <defs>
-              <radialGradient id="retinaBase" cx="42%" cy="45%" r="58%"><stop offset="0" stop-color="#ffb56c"/><stop offset=".42" stop-color="#e8753c"/><stop offset=".78" stop-color="#91372e"/><stop offset="1" stop-color="#391e35"/></radialGradient>
-              <radialGradient id="disc" cx="45%" cy="40%"><stop offset="0" stop-color="#ffe9a9"/><stop offset=".55" stop-color="#ffc477"/><stop offset="1" stop-color="#d97d4e"/></radialGradient>
-              <clipPath id="retinaClip"><circle cx="210" cy="210" r="182"/></clipPath>
-              <filter id="softGlow"><feGaussianBlur stdDeviation="12"/></filter>
-            </defs>
-            <circle cx="210" cy="210" r="195" fill="#dce7f6"/>
-            <g clip-path="url(#retinaClip)">
-              <circle cx="210" cy="210" r="182" fill="url(#retinaBase)"/>
-              <g fill="none" stroke="#812b2d" stroke-width="4.8" stroke-linecap="round" opacity=".75">
-                <path d="M110 220 C151 204 166 185 190 169 S236 133 274 94"/><path d="M149 193 C146 158 120 130 88 109"/><path d="M174 181 C160 148 162 122 155 88"/><path d="M187 168 C218 161 245 168 282 155 S329 130 362 106"/><path d="M192 173 C231 193 251 220 287 244 S324 281 348 319"/><path d="M188 178 C203 219 203 252 190 293 S174 340 172 371"/><path d="M174 190 C146 219 123 250 103 284 S76 324 61 346"/><path d="M205 180 C235 211 257 246 262 282 S274 331 295 358"/><path d="M242 165 C269 141 294 130 317 126"/><path d="M156 204 C128 198 104 207 80 223"/>
-              </g>
-              <g fill="none" stroke="#f6ab75" stroke-width="2" stroke-linecap="round" opacity=".68">
-                <path d="M110 220 C151 204 166 185 190 169 S236 133 274 94"/><path d="M149 193 C146 158 120 130 88 109"/><path d="M174 181 C160 148 162 122 155 88"/><path d="M187 168 C218 161 245 168 282 155 S329 130 362 106"/><path d="M192 173 C231 193 251 220 287 244 S324 281 348 319"/><path d="M188 178 C203 219 203 252 190 293 S174 340 172 371"/><path d="M174 190 C146 219 123 250 103 284 S76 324 61 346"/>
-              </g>
-              <circle cx="150" cy="213" r="34" fill="url(#disc)" opacity=".96"/><circle cx="150" cy="213" r="17" fill="#ffdf9b" opacity=".5"/>
-              <g class="heat-spots" opacity=".9"><circle cx="278" cy="152" r="37" fill="#35dbff" filter="url(#softGlow)"/><circle cx="278" cy="152" r="23" fill="#7e50ff"/><circle cx="278" cy="152" r="11" fill="#ffd64b"/><circle cx="321" cy="225" r="41" fill="#ff4b8a" filter="url(#softGlow)"/><circle cx="321" cy="225" r="26" fill="#ff2e55"/><circle cx="321" cy="225" r="12" fill="#ffd452"/><circle cx="242" cy="289" r="23" fill="#3edcf5" filter="url(#softGlow)"/><circle cx="242" cy="289" r="10" fill="#8d5bff"/></g>
-              <g fill="#fff0ce" opacity=".82"><circle cx="232" cy="122" r="2.2"/><circle cx="252" cy="183" r="2"/><circle cx="292" cy="202" r="2.5"/><circle cx="305" cy="268" r="2"/><circle cx="221" cy="265" r="2.2"/><circle cx="340" cy="177" r="1.8"/><circle cx="269" cy="315" r="2"/><circle cx="188" cy="132" r="1.8"/></g>
-            </g>
-            <circle cx="210" cy="210" r="183" fill="none" stroke="#fff" stroke-width="5"/>
-          </svg>
-          <div class="retina-chip chip-left"><span class="chip-dot"></span> Illustration</div>
-          <div class="retina-chip chip-right"><span class="heat-dot"></span> Heatmap concept</div>
+      <div class="hero-visual" aria-label="DRISHTI-AI cinematic intro video and product overview">
+        <div class="visual-topline"><span class="live-indicator"></span> CINEMATIC OVERVIEW <span class="sample-tag">10S INTRO VIDEO</span></div>
+        <div class="hero-media-wrap" id="heroMediaWrap" role="button" tabindex="0" aria-label="Play DRISHTI-AI cinematic intro video in full screen">
+          <img
+            src="drishti-hero-cinematic.jpg"
+            alt="DRISHTI-AI cinematic overview showing close-up retinal scan and AI diagnostic indicators"
+            class="hero-cinematic-img"
+            id="heroCinematicImg"
+            width="1024"
+            height="576"
+            loading="eager"
+          />
+          <button
+            class="video-play-hotspot"
+            id="openFullscreenVideoBtn"
+            type="button"
+            aria-label="Play DRISHTI-AI cinematic intro trailer in full screen"
+            title="Watch Cinematic Intro (Full Screen)">
+            <span class="hotspot-pulse"></span>
+            <span class="hotspot-content">
+              <svg class="hotspot-play-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                <polygon points="6 3 20 12 6 21 6 3"></polygon>
+              </svg>
+              <span>Watch Cinematic Intro</span>
+            </span>
+          </button>
         </div>
-        <div class="visual-footer"><span>Explainability concept</span><span class="footer-divider"></span><span>Not generated by a trained model</span></div>
+        <div class="visual-footer"><span>Explainable Screening Prototype</span><span class="footer-divider"></span><span>Click to watch full screen</span></div>
       </div>
     </section>
 
@@ -97,8 +97,17 @@
     </section>
 
     <section class="workspace-section" id="workspace">
-      <div class="workspace-shell">
-        <div class="section-heading workspace-heading"><div><span class="section-kicker">INTERACTIVE PROTOTYPE</span><h2>Try the screening workspace</h2><p>Upload an image to test the interface, or explore the clearly labeled sample flow.</p></div><span class="status-pill"><span></span> Frontend prototype</span></div>
+        <div class="section-heading workspace-heading">
+          <div>
+            <span class="section-kicker">INTERACTIVE WORKSPACE</span>
+            <h2>DRISHTI-AI Screening Workspace</h2>
+            <p>Upload a retinal fundus image for technical quality checks, deep learning stage classification, and Grad-CAM explainability.</p>
+          </div>
+          <div class="status-pill" id="backendStatusPill" role="status" aria-label="Backend status">
+            <span class="status-indicator-dot" id="backendDot" aria-hidden="true"></span>
+            <span class="status-pill-text" id="backendStatusText">Connecting…</span>
+          </div>
+        </div>
         <div class="workspace-grid">
           <div class="upload-panel panel">
             <div class="panel-heading"><div><span class="panel-step">STEP 01</span><h3>Fundus image</h3></div><span class="panel-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L7 8m5-5 5 5M4 15v4h16v-4"/></svg></span></div>
@@ -107,34 +116,151 @@
               <span class="upload-symbol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 15v5h16v-5"/></svg></span>
               <strong>Drop an image here or <span>browse files</span></strong>
               <small>PNG, JPG, or WebP · up to 15 MB</small>
-              <small class="privacy-note">Your selected file stays in this browser prototype.</small>
+              <small class="privacy-note">Privacy by design: Only clinical metadata persisted. No raw retinal image bytes stored in DB.</small>
             </label>
             <div class="file-preview hidden" id="filePreview">
               <div class="preview-image-wrap"><img id="uploadedPreview" alt="Selected retinal image preview" /><button class="remove-file" id="removeFile" aria-label="Remove selected image">×</button></div>
               <div class="file-meta"><div><strong id="fileName">image.jpg</strong><span id="fileDimensions">Checking dimensions…</span></div><span class="file-type-pill" id="fileSize">Image</span></div>
             </div>
-            <div class="checklist" id="checklist"><div class="check-row"><span class="check-indicator neutral">1</span><span><strong>File format</strong><small>Waiting for an image</small></span><span class="check-state">Pending</span></div><div class="check-row"><span class="check-indicator neutral">2</span><span><strong>Image dimensions</strong><small>Basic resolution check</small></span><span class="check-state">Pending</span></div></div>
-            <div class="panel-actions"><button class="button button-primary full-width" id="analyzeButton" disabled>Check image <span aria-hidden="true">→</span></button><button class="button button-quiet full-width" id="trySample">Use sample demonstration</button></div>
-            <p class="micro-disclaimer">These checks do not determine whether an image is clinically suitable.</p>
+            <div class="checklist" id="checklist">
+              <div class="check-row"><span class="check-indicator neutral">1</span><span><strong>File format & size</strong><small>Waiting for an image</small></span><span class="check-state">Pending</span></div>
+              <div class="check-row"><span class="check-indicator neutral">2</span><span><strong>Image dimensions</strong><small>Basic resolution check (min 200x200 px)</small></span><span class="check-state">Pending</span></div>
+              <div class="check-row"><span class="check-indicator neutral">3</span><span><strong>Usability heuristics</strong><small>Illumination & contrast validation</small></span><span class="check-state">Pending</span></div>
+            </div>
+            <div class="panel-actions">
+              <button class="button button-primary full-width" id="analyzeButton" disabled>Upload & Validate Image <span aria-hidden="true">→</span></button>
+              <button class="button button-primary full-width hidden" id="runInferenceBtn" style="background:#0b9e8c;">Run AI Analysis <span aria-hidden="true">⚡</span></button>
+              <button class="button button-quiet full-width" id="trySample">Use sample demonstration</button>
+            </div>
+            <p class="micro-disclaimer">Heuristic checks do not determine clinical gradability. Research decision-support only.</p>
           </div>
           <div class="results-panel panel" aria-live="polite">
-            <div class="panel-heading"><div><span class="panel-step">STEP 02</span><h3>Analysis workspace</h3></div><span class="not-connected"><span></span> Model not connected</span></div>
-            <div class="result-empty" id="resultEmpty"><div class="empty-illustration"><svg viewBox="0 0 100 100" aria-hidden="true"><rect x="13" y="15" width="74" height="70" rx="15" fill="#eef4ff"/><circle cx="50" cy="49" r="23" fill="#d5e5ff"/><path d="M28 49c6-10 14-15 22-15s16 5 22 15c-6 10-14 15-22 15S34 59 28 49Z" fill="none" stroke="#2863e8" stroke-width="2.5"/><circle cx="50" cy="49" r="8" fill="none" stroke="#2863e8" stroke-width="2.5"/><circle cx="50" cy="49" r="3" fill="#2863e8"/><path d="M23 75h54" stroke="#b7c9ed" stroke-width="3" stroke-linecap="round"/></svg></div><h4>Ready for an image</h4><p>Choose a fundus image to see its preview and basic technical checks. Predictions will appear here once a validated model API is connected.</p><div class="empty-stats"><div><span class="tiny-dot blue-dot"></span><span>Image preview</span><strong>Available</strong></div><div><span class="tiny-dot gray-dot"></span><span>AI prediction</span><strong>Not connected</strong></div><div><span class="tiny-dot gray-dot"></span><span>Grad-CAM heatmap</span><strong>Not connected</strong></div></div></div>
+            <div class="panel-heading">
+              <div><span class="panel-step">STEP 02</span><h3>Analysis workspace</h3></div>
+              <div class="status-pill not-connected" id="modelReadinessPill" role="status" aria-label="Model status">
+                <span class="status-indicator-dot" id="modelDot" aria-hidden="true"></span>
+                <span class="status-pill-text" id="modelStatusText">Model status…</span>
+              </div>
+            </div>
+            <div class="result-empty" id="resultEmpty"><div class="empty-illustration"><svg viewBox="0 0 100 100" aria-hidden="true"><rect x="13" y="15" width="74" height="70" rx="15" fill="#eef4ff"/><circle cx="50" cy="49" r="23" fill="#d5e5ff"/><path d="M28 49c6-10 14-15 22-15s16 5 22 15c-6 10-14 15-22 15S34 59 28 49Z" fill="none" stroke="#2863e8" stroke-width="2.5"/><circle cx="50" cy="49" r="8" fill="none" stroke="#2863e8" stroke-width="2.5"/><circle cx="50" cy="49" r="3" fill="#2863e8"/><path d="M23 75h54" stroke="#b7c9ed" stroke-width="3" stroke-linecap="round"/></svg></div><h4>Ready for an image</h4><p>Choose a fundus image to upload and validate. Verified deep learning predictions and Grad-CAM explainability will display here.</p><div class="empty-stats"><div><span class="tiny-dot blue-dot"></span><span>Image upload</span><strong>Verified</strong></div><div><span class="tiny-dot blue-dot" id="emptyAiDot"></span><span>AI prediction</span><strong id="emptyAiText">Ready</strong></div><div><span class="tiny-dot blue-dot" id="emptyCamDot"></span><span>Grad-CAM heatmap</span><strong id="emptyCamText">Ready</strong></div></div></div>
             <div class="result-content hidden" id="resultContent">
               <div class="result-banner" id="resultBanner"><span class="result-symbol" id="resultSymbol">✓</span><div><strong id="resultTitle">Image loaded</strong><span id="resultSubtitle">Basic technical checks complete</span></div><span class="demo-stamp hidden" id="demoStamp">SIMULATED DEMO</span></div>
-              <div class="result-columns"><div class="result-box"><span class="box-label">IMAGE CHECK</span><strong id="qualityValue">Review complete</strong><p id="qualityDescription">The image file was opened and dimensions were checked.</p><div class="quality-meter"><span id="qualityMeter"></span></div></div><div class="result-box prediction-box"><span class="box-label">MODEL OUTPUT</span><strong id="predictionValue">Not available</strong><p id="predictionDescription">Connect a trained model to produce real predictions.</p></div></div>
-              <div class="explanation-box"><div class="explanation-heading"><strong>Explainability</strong><span class="not-connected" id="heatmapStatus">Not available</span></div><div class="heatmap-placeholder" id="heatmapPlaceholder"><div class="heatmap-icon">◎</div><p>A model-generated Grad-CAM heatmap will appear here when connected.</p></div><p class="safety-note" id="safetyNote">No diagnosis has been generated. This interface is for software demonstration and research prototyping only.</p></div>
+              <div class="result-columns">
+                <div class="result-box"><span class="box-label">IMAGE HEURISTICS</span><strong id="qualityValue">Review complete</strong><p id="qualityDescription">The image file was opened and dimensions were checked.</p><div class="quality-meter"><span id="qualityMeter"></span></div></div>
+                <div class="result-box prediction-box"><span class="box-label">AI PREDICTION</span><strong id="predictionValue">Not available</strong><p id="predictionDescription">Upload image and trigger model inference.</p></div>
+              </div>
+              <div class="probabilities-box hidden" id="probabilitiesBox" style="margin-bottom:12px; border:1px solid #eaf0f7; border-radius:12px; padding:13px; background:#fff;">
+                <span class="box-label">DR STAGE PROBABILITY DISTRIBUTION</span>
+                <div id="probBarsList" style="display:grid; gap:8px; margin-top:8px;"></div>
+              </div>
+              <div class="explanation-box">
+                <div class="explanation-heading"><strong>Explainability (Grad-CAM)</strong><span class="not-connected" id="heatmapStatus">Not available</span></div>
+                <div class="heatmap-placeholder" id="heatmapPlaceholder"><div class="heatmap-icon">◎</div><p id="heatmapMessage">A model-generated Grad-CAM heatmap will appear here when analysis completes.</p></div>
+                <div class="gradcam-view hidden" id="gradcamView" style="margin-top:8px; border:1px solid #dce4f0; border-radius:12px; overflow:hidden; background:#101b31; text-align:center;">
+                  <img id="gradcamImg" alt="Grad-CAM Activation Overlay" style="max-width:100%; height:auto; max-height:280px; display:block; margin:0 auto;" />
+                  <div style="padding:7px 10px; font-size:10px; color:#c7d6ec; background:rgba(16,27,49,.9); display:flex; justify-content:space-between; align-items:center;">
+                    <span>Genuine Grad-CAM Activation Overlay</span>
+                    <span style="font-weight:700; color:#3dd598;">Top Activation Layer (EfficientNetB0)</span>
+                  </div>
+                </div>
+                <p class="safety-note" id="safetyNote">Research prototype decision-support only. Not clinically validated for independent diagnosis.</p>
+              </div>
             </div>
-            <div class="integration-note"><span class="integration-icon">⌘</span><div><strong>Next integration step</strong><p>Connect your backend endpoint to return the model prediction, class probabilities, quality-gate result, and optional Grad-CAM image.</p></div><a href="#integration" aria-label="View integration notes">↗</a></div>
+            <div class="integration-note"><span class="integration-icon">⌘</span><div><strong>Screening Reference</strong><p id="screeningRefText">Ready to intake fundus image. Screening records are securely persisted in SQLite.</p></div><a href="#historySection" aria-label="View history">↘</a></div>
+          </div>
+        </div>
+
+        <div class="history-panel panel" id="historySection" style="margin-top:24px;">
+          <div class="panel-heading" style="margin-bottom:14px;">
+            <div><span class="panel-step">PERSISTENT RECORDS</span><h3 style="font-size:18px;">Screening Session History</h3></div>
+            <button class="button button-quiet" id="refreshHistoryBtn" style="min-height:36px; padding:0 12px; font-size:11px;">Refresh History ⟳</button>
+          </div>
+          <div id="historyListContainer">
+            <p style="font-size:11px; color:#8291aa; margin:0;">Loading screening history from SQLite…</p>
           </div>
         </div>
       </div>
     </section>
-
-    <section class="integration-section section-shell" id="integration"><div class="integration-copy"><span class="section-kicker">READY FOR THE NEXT BUILD STAGE</span><h2>Connect your trained model</h2><p>The interface is ready for backend integration. The model endpoint is intentionally not faked: uploaded images receive only local technical checks until a real inference service is connected.</p></div><div class="integration-steps"><div><span>01</span><p><strong>Backend endpoint</strong><small>Accept image upload and validate request</small></p></div><div><span>02</span><p><strong>Model inference</strong><small>Return one of your defined DR classes</small></p></div><div><span>03</span><p><strong>Explainability payload</strong><small>Return heatmap URL/image if supported</small></p></div></div></section>
   </main>
 
-  <footer class="site-footer"><a class="brand footer-brand" href="#home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 30"><path d="M2 15C7.3 6.7 13.5 3 21 3s13.7 3.7 19 12c-5.3 8.3-11.5 12-19 12S7.3 23.3 2 15Z"/><circle cx="21" cy="15" r="7.5"/><circle cx="21" cy="15" r="2.6"/></svg></span><span>DRISHTI<span class="brand-dash">-</span>AI</span></a><p>Early Detection for Clearer Tomorrows</p><span class="footer-note">Research prototype · Not for clinical use</span></footer>
+  <!-- Fullscreen Video Lightbox / Modal -->
+  <div class="video-modal" id="videoModal" role="dialog" aria-modal="true" aria-label="DRISHTI-AI Cinematic Intro Video" hidden>
+    <div class="video-modal-backdrop" id="videoModalBackdrop"></div>
+    <div class="video-modal-container">
+      <header class="video-modal-header">
+        <div class="video-modal-brand">
+          <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 30"><path d="M2 15C7.3 6.7 13.5 3 21 3s13.7 3.7 19 12c-5.3 8.3-11.5 12-19 12S7.3 23.3 2 15Z"/><circle cx="21" cy="15" r="7.5"/><circle cx="21" cy="15" r="2.6"/></svg></span>
+          <span>DRISHTI-AI — Cinematic Intro Trailer</span>
+        </div>
+        <button class="video-modal-close" id="closeVideoModalBtn" type="button" aria-label="Close full screen video" title="Close (Esc)">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </header>
+
+      <div class="video-modal-stage">
+        <video
+          id="modalVideoPlayer"
+          class="modal-video-element"
+          poster="drishti-hero-cinematic.jpg"
+          playsinline
+          preload="metadata"
+          aria-label="DRISHTI-AI 10-second cinematic video player">
+          <source src="assets/drishti-intro.mp4" type="video/mp4">
+          <source src="drishti-intro.mp4" type="video/mp4">
+          <p>Your browser does not support HTML5 video. Please download <a href="assets/drishti-intro.mp4">drishti-intro.mp4</a> to view the introductory trailer.</p>
+        </video>
+
+        <div class="modal-controls-bar">
+          <button class="modal-ctrl-btn" id="modalPlayPauseBtn" type="button" aria-label="Pause video" title="Play/Pause (Space)">
+            <svg class="icon-pause" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+            <svg class="icon-play hidden" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </button>
+
+          <div class="modal-time-display" id="modalTimeDisplay">0:00 / 0:10</div>
+
+          <div class="modal-progress-wrap" id="modalProgressWrap" role="slider" aria-label="Video seek bar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" tabindex="0">
+            <div class="modal-progress-bar" id="modalProgressBar"></div>
+          </div>
+
+          <button class="modal-ctrl-btn" id="modalSoundBtn" type="button" aria-label="Mute audio" title="Sound Toggle">
+            <svg class="sound-icon-unmuted" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+            <svg class="sound-icon-muted hidden" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <line x1="23" y1="9" x2="17" y2="15"></line>
+              <line x1="17" y1="9" x2="23" y2="15"></line>
+            </svg>
+            <span id="modalSoundLabel">Sound</span>
+          </button>
+
+          <button class="modal-ctrl-btn" id="modalReplayBtn" type="button" aria-label="Replay intro video" title="Replay">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+            <span>Replay</span>
+          </button>
+
+          <button class="modal-ctrl-btn" id="modalFullscreenToggleBtn" type="button" aria-label="Toggle full screen" title="Full Screen">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="app.js"></script>
 </body>

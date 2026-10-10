@@ -51,6 +51,7 @@ backend/*.db
 backend/*.sqlite3
 
 # Uploads, datasets & images (privacy & medical data protection)
+datasets/
 data/*
 !data/.gitkeep
 backend/uploads/
@@ -67,11 +68,13 @@ models/*
 *.safetensors
 *.bin
 
-# Logs & temp files
+# Logs, backups & temp files
 *.log
 logs/
 temp/
 tmp/
+*.bak
+*.zip
 
 # OS & IDE
 .DS_Store
