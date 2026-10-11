@@ -1,24 +1,21 @@
-# DRISHTI-AI Project Book
+# DRISHTI-AI Frontend — Engineering Log
 
-## Step 1 — Interactive frontend prototype
+**Lead:** Ashwidha (Frontend Lead, Team SPARK)
 
-**Goal:** Turn the static landing-page idea into a responsive, runnable website skeleton.
+---
 
-**Files created:**
-- `index.html` — semantic page structure, navigation, landing page, workflow, upload panel, and results panel.
-- `styles.css` — responsive layout, typography, colors, cards, uploader, results states, and mobile navigation styles.
-- `app.js` — local file handling, preview, basic dimension checks, sample-demo state, result state, drag-and-drop, and menu behavior.
-- `README.md` — run/deploy notes and integration plan.
+## Milestone 1: Interactive Technician Workspace Prototype
+- Created semantic HTML5 structure in `index.html`.
+- Designed responsive layout, healthcare color tokens, and interactive cards in `styles.css`.
+- Built client-side drag-and-drop, image preview, and basic file dimension validation in `app.js`.
 
-**What works:**
-- Select or drop PNG/JPG/WebP files up to 15 MB.
-- Preview and remove the selected image.
-- Check browser image readability and whether dimensions are at least 256 × 256 pixels.
-- Display an explicit “model not connected” state rather than making predictions about an uploaded image.
-- Open a separate static sample flow labelled “SIMULATED DEMO.”
+---
 
-**Important limitations:** No trained model, clinical image-quality gate, API, database, or Grad-CAM implementation is included. The sample result is static UI demonstration data only.
-
-**How to run:** Open `index.html` in a modern browser, or run `python -m http.server 8080` from this directory and visit `http://localhost:8080`.
-
-**Next step:** Connect the actual DR model/backend and wire its validated response into the result panel. Add tests and end-to-end validation before presenting this as a working screening system.
+## Milestone 2: Full-Stack FastAPI & Grad-CAM Integration
+- Configured dynamic API base resolution supporting unified serving (`/`), local standalone dev (`http://127.0.0.1:8000`), and configurable endpoints.
+- Integrated `/health` status polling: displays real-time **Backend online** and **Model ready (5-class)** pills.
+- Connected image upload to `POST /api/v1/screenings/upload`.
+- Implemented deep-learning inference trigger via `POST /api/v1/screenings/{id}/analyze`.
+- Rendered 5-class severity stage, confidence percentage, and horizontal probability distribution bars.
+- Integrated Grad-CAM explainability viewer: renders side-by-side fundus scan alongside the blended Jet colormap activation heatmap overlay from `GET /api/v1/screenings/{id}/gradcam`.
+- Connected screening history table: dynamically fetches and renders past screenings from `GET /api/v1/screenings`.

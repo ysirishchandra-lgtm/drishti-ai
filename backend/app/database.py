@@ -194,3 +194,40 @@ def list_screenings(
         rows = cursor.fetchall()
         items = [row_to_dict(r) for r in rows]
         return total, items
+
+
+def update_screening_analysis(
+    screening_id: str,
+    analysis_data: Dict[str, Any],
+    db_path: Optional[str] = None
+) -> bool:
+    """Update analysis results for an existing screening record without duplication."""
+    path = db_path or get_db_path()
+    probs = analysis_data.get("class_probabilities")
+    probs_json = json.dumps(probs) if probs is not None else None
+
+    with get_connection(path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE screenings
+            SET model_status = ?,
+                analysis_available = ?,
+                prediction = ?,
+                confidence = ?,
+                class_probabilities = ?,
+                gradcam_available = ?,
+                notes = ?
+            WHERE screening_id = ?
+        """, (
+            analysis_data.get("model_status", "not_configured"),
+            1 if analysis_data.get("analysis_available", False) else 0,
+            analysis_data.get("prediction"),
+            analysis_data.get("confidence"),
+            probs_json,
+            1 if analysis_data.get("gradcam_available", False) else 0,
+            analysis_data.get("notes"),
+            screening_id
+        ))
+        conn.commit()
+        return cursor.rowcount > 0
+

@@ -7,6 +7,7 @@ Purpose: Explainable AI-based diabetic retinopathy screening support for rural I
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 import logging
+import os
 from typing import List
 
 from fastapi import FastAPI, Request, status
@@ -53,6 +54,14 @@ app = FastAPI(
 ALLOWED_ORIGINS: List[str] = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:4173",
+    "http://127.0.0.1:4173",
 ]
 
 app.add_middleware(
@@ -103,3 +112,14 @@ async def global_exception_handler(request: Request, exc: Exception):
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
     )
+
+
+# Mount static frontend assets if available (prefer production dist if built)
+frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
+frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend"))
+
+target_static_dir = frontend_dist if (os.path.isdir(frontend_dist) and os.path.isfile(os.path.join(frontend_dist, "index.html"))) else frontend_dir
+
+if os.path.isdir(target_static_dir) and os.path.isfile(os.path.join(target_static_dir, "index.html")):
+    from fastapi.staticfiles import StaticFiles
+    app.mount("/", StaticFiles(directory=target_static_dir, html=True), name="frontend")

@@ -1,58 +1,66 @@
-# DRISHTI-AI — Interactive Frontend Prototype
+# DRISHTI-AI — Frontend Application
 
-This is a responsive, browser-runnable website prototype based on the DRISHTI-AI mockup.
+**Responsive Technician Screening Interface for Diabetic Retinopathy Triage**  
+**Lead:** Ashwidha (Frontend Lead, Team SPARK)
 
-## What works now
-- Responsive landing page and mobile navigation
-- Fundus image file selection, drag-and-drop, preview, and removal
-- Supported format and 15 MB file-size checks
-- Browser-side image readability and minimum-dimension checks
-- Empty state, real-image check state, and a clearly labeled static sample-demo state
-- No upload request: the chosen image stays in the browser
+---
 
-## What is not connected yet
-- No trained diabetic-retinopathy model or inference API
-- No clinical-quality gate
-- No Grad-CAM generation
-- No database, login, patient record storage, or deployment configuration
+## Overview
 
-The sample `Moderate DR` label is static placeholder data for visualizing the result UI. It is not inferred from an image and must never be used for medical decisions. The browser checks only tell whether the file can be opened and whether its pixel dimensions pass a simple threshold; they are not medical image-quality checks.
+The DRISHTI-AI frontend is a lightweight, responsive web application designed for primary healthcare workers and vision center technicians in rural India. It provides a distraction-free, accessible interface for capturing/uploading fundus photographs, inspecting automated usability heuristics, triggering deep learning inference, visualizing Grad-CAM explainability heatmaps, and exploring previous screening records.
 
-## Run locally
+---
 
-You can open `index.html` directly in a modern browser. For a local web server, from this folder run:
+## Implemented Features
 
-```bash
-python -m http.server 8080
+- **Responsive Landing & Workspace:** Optimized for desktop screens and tablet/mobile viewports.
+- **Fundus Image Drag-and-Drop:** Intuitive file drop-zone supporting JPEG, PNG, and WebP formats up to 15 MB.
+- **Client & Server Usability Checks:** Live feedback on image decodability, minimum resolution (>=200×200 px), brightness, and contrast.
+- **Real-Time Backend & Model Health Indicators:** Live status badges in the top navigation tracking backend connectivity and 5-class model readiness (`ready`).
+- **5-Class Prediction & Confidence Display:** Visualizes predicted DR stage (*No DR*, *Mild*, *Moderate*, *Severe*, *Proliferative DR*) along with granular probability distribution bars.
+- **Side-by-Side Grad-CAM Explainability:** Renders a genuine Jet colormap activation heatmap overlay atop the original fundus photograph.
+- **SQLite Screening History:** Dynamically renders historical screening records retrieved via `GET /api/v1/screenings`.
+- **Graceful Fallback Mode:** When running without a live backend configured, clearly informs the operator with a non-connected indicator rather than failing silently.
+
+---
+
+## Running Locally
+
+### Option 1: Unified via FastAPI (Recommended)
+When you start the FastAPI backend, it automatically serves this frontend at the root URL:
+```powershell
+# From repository root:
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --app-dir backend
+```
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
+
+### Option 2: Standalone Static Server
+You can also serve the frontend independently:
+```powershell
+# From repository root:
+python -m http.server 8080 --directory frontend
+```
+Open [http://127.0.0.1:8080](http://127.0.0.1:8080). The client automatically connects to the FastAPI backend running on port 8000 via CORS.
+
+---
+
+## File Structure
+
+```
+frontend/
+├── index.html                   # Semantic markup, navigation, hero, screening workspace
+├── styles.css                   # Custom responsive styles, design tokens, color palette
+├── app.js                       # Asynchronous API integration, drag-and-drop, UI state handling
+├── eye-hero-poster.jpg          # Visual asset for hero banner
+├── drishti-hero-cinematic.jpg   # High-resolution clinical illustration
+├── assets/
+│   ├── drishti-hero-cinematic.jpg
+│   └── drishti-intro.mp4        # Hackathon intro video walkthrough
+├── README.md                    # This file
+└── PROJECT_BOOK.md              # Frontend engineering notes
 ```
 
-Then open `http://localhost:8080`.
+---
 
-## Deploy a static demo
-
-This is a static site. Upload the project folder to a Git repository and import it into a static hosting service such as Vercel. Use the project root as the root directory; no build command is required, and the output directory is the root (`.`).
-
-## Connecting a real model later
-
-A backend endpoint should accept the image and return validated structured data such as:
-
-```json
-{
-  "request_id": "example-id",
-  "quality_gate": { "status": "pass", "reason": "..." },
-  "prediction": {
-    "class": "moderate",
-    "probabilities": {
-      "no_dr": 0.0,
-      "mild": 0.0,
-      "moderate": 0.0,
-      "severe": 0.0,
-      "pdr": 0.0
-    }
-  },
-  "explainability": { "heatmap_url": null },
-  "model_version": "your-model-version"
-}
-```
-
-The values above are schema examples only—not model results. The frontend should show model version, uncertainty/quality failures, and a clear research-only disclaimer. Do not present the system as clinically validated without appropriate clinical evaluation and regulatory review.
+## Clinical Notice
+This frontend interface is part of an experimental screening-support research prototype. It does not provide clinical diagnosis and is intended solely for demonstration and research evaluation.

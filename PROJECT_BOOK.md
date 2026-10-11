@@ -31,12 +31,12 @@ DRISHTI-AI targets primary triage and referral management, functioning as a clin
 
 ## 3. Team Members & Responsibilities
 
-| Name | Role | Responsibilities | Current Focus |
+| Name | Role | Core Responsibilities | Final Project Focus |
 |---|---|---|---|
-| **Sirish** | **Team Lead, Backend & Database** | Architecture, FastAPI backend, image validation, SQLite persistence, API contracts, deployment prep, documentation | Backend foundation, validation, persistence, API |
-| **Ashwidha** | **Frontend Lead** | React + Vite UI, technician dashboard, upload flows, report viewer, responsive UI | Initial frontend setup & design against contract |
-| **Rudra** | **AI/ML Lead** | DR model discovery, weights verification, licensing, 5-class DR classification, Grad-CAM generation | Identifying verified model checkpoint & preprocessing pipeline |
-| **Kaustub** | **Integration QA & Demo Support** | End-to-end integration testing, edge-case validation, test reports, demo script & presentation | Backend test execution, quality validation checks |
+| **Sirish** | **Team Lead, Backend & Database** | FastAPI backend architecture, image validation service, SQLite persistence layer, REST endpoints, Grad-CAM pipeline integration, repository polish | Backend foundation, validation, persistence, Grad-CAM integration |
+| **Ashwidha** | **Frontend Lead** | Responsive UI/UX layout, landing page, technician screening workspace, file upload flow, probability charts, client error handling | Responsive HTML5/CSS3/JS UI, live backend connectivity |
+| **Rudra** | **AI/ML Lead** | DR model discovery, 5-class EfficientNetB0 training in `DRISHTI_1.ipynb`, model artifact export (`RetinaExplain_AI_v2_final.keras`), Grad-CAM layer configuration | Trained model artifact, 5-class weights, Grad-CAM architecture |
+| **Kaustub** | **Integration QA & Testing** | Comprehensive automated test suite (26 pytest tests), cross-component verification, dataset split audit, demo walkthrough verification | End-to-end test validation, API contract & frontend integration testing |
 
 ---
 
@@ -46,31 +46,34 @@ DRISHTI-AI targets primary triage and referral management, functioning as a clin
 [ Primary Healthcare Worker / Vision Center ]
                       │ (Retinal Fundus Image)
                       ▼
-        [ React + Vite Frontend (Port 5173) ]
+         [ Frontend Dashboard (Port 8000 / 8080) ]
+         (HTML5, CSS3, Vanilla JS, Drag-and-Drop)
                       │ (Multipart Form-Data / JSON REST)
                       ▼
-           [ FastAPI Backend (Port 8000) ]
-        ┌─────────────┴─────────────┐
-        ▼                           ▼
-[ Image Validation Service ]   [ Model Service Interface ]
-  - Size check (<=15MB)          - Model status inspection
-  - Format check (JPEG,PNG,WebP) - Preprocessing (when loaded)
-  - PIL decode & integrity       - 5-class inference (stubbed until loaded)
-  - Heuristic usability checks   - Grad-CAM heatmap generator
-        │                           │
-        └─────────────┬─────────────┘
-                      ▼
-           [ SQLite Persistence ]
-             - Screenings table
-             - Quality metadata
-             - Review / Referral status
+            [ FastAPI Backend (Port 8000) ]
+         ┌─────────────┴─────────────┐
+         ▼                           ▼
+[ Image Validation Service ]   [ Model Service (Singleton) ]
+  - Size check (<=15MB)          - Input preprocessing ((224,224,3) float32)
+  - Magic bytes & PIL decode     - EfficientNetB0 5-class forward pass
+  - Min dimensions (200x200 px)  - Softmax probabilities calculation
+  - Brightness & contrast checks - Grad-CAM engine (tf.GradientTape on top_activation)
+         │                           │
+         └─────────────┬─────────────┘
+                       ▼
+            [ SQLite Persistence ]
+              - screenings table
+              - Quality metadata & heuristic flags
+              - 5-class predictions & confidence
+              - Grad-CAM heatmap overlay path
 ```
 
 ### Request Flow:
 1. **Upload:** User uploads fundus photo -> `POST /api/v1/screenings/upload` validates format, size, decodability, dimensions, and saves metadata.
 2. **Usability Check:** Validation returns preliminary image usability flags (e.g., contrast, brightness, resolution) without claiming clinical diagnosis.
-3. **Screening Analysis:** User requests analysis -> `POST /api/v1/screenings/{id}/analyze`. If a verified model is loaded, it executes inference; otherwise, returns clean `model_status: "not_configured"`.
-4. **Record Tracking:** History and referral status queried via `GET /api/v1/screenings` and `GET /api/v1/screenings/{id}`.
+3. **Screening Analysis:** User requests analysis -> `POST /api/v1/screenings/{id}/analyze`. Executes verified EfficientNetB0 inference, computes Grad-CAM heatmap overlay via `tf.GradientTape`, and updates database record.
+4. **Grad-CAM Overlay:** Frontend retrieves PNG heatmap overlay via `GET /api/v1/screenings/{id}/gradcam` for clinical explainability.
+5. **Record Tracking:** History and referral status queried via `GET /api/v1/screenings` and `GET /api/v1/screenings/{id}`.
 
 ---
 
@@ -80,12 +83,12 @@ DRISHTI-AI targets primary triage and referral management, functioning as a clin
 |---|---|---|
 | **Backend Framework** | **FastAPI 0.115+** | High performance, native async support, automatic OpenAPI/Swagger documentation, fast iteration for 36-hr sprint |
 | **ASGI Server** | **Uvicorn** | Production-ready ASGI server with fast reload support |
-| **Image Processing** | **Pillow (PIL)** | Robust, memory-safe image decoding, metadata extraction, and dimension validation |
+| **Image Processing** | **Pillow (PIL 10.4+)** | Robust, memory-safe image decoding, metadata extraction, and dimension validation |
 | **Validation & Serialization** | **Pydantic v2** | Strong data contracts, typed schemas, and automatic input sanitization |
-| **Database** | **SQLite (via Python standard library)** | Zero-config, reliable ACID persistence, zero external daemon requirements for local prototype development |
-| **Frontend Framework** | **React 18 + Vite** | Instant HMR, minimal build overhead, modern component model |
-| **AI/ML Runtime (Target)** | **PyTorch / Torchvision / ONNX** | Industry standard for medical imaging and Grad-CAM explainability |
-| **Testing** | **Pytest + HTTPX** | Expressive test suites, async HTTP test client, reliable CI verification |
+| **Database** | **SQLite (Python stdlib)** | Zero-config, reliable ACID persistence, zero external daemon requirements for local prototype development |
+| **Frontend** | **HTML5, CSS3, Vanilla JS** | Lightweight, zero-build-step client, robust cross-browser compatibility, minimal footprint |
+| **AI/ML Runtime** | **TensorFlow 2.16+ / Keras 3.0+** | EfficientNetB0 convolutional neural network, `tf.GradientTape` for Grad-CAM explainability |
+| **Testing** | **Pytest + HTTPX** | Expressive test suites, async HTTP test client, reliable CI verification (26 tests passing) |
 
 ---
 
@@ -594,4 +597,208 @@ Replace the experimental React/Vite/Three.js 3D frontend with the original, clea
 2. Wire `_load_model()` in `backend/app/services/model_service.py`.
 3. Connect Grad-CAM hook to the final convolutional layer of the trained architecture.
 4. Update frontend to consume real predictions from `POST /api/v1/screenings/{id}/analyze`.
+
+---
+
+## 21. Temporary Starter Frontend Removal for Ashwidha Handoff
+
+### Goal & Motivation:
+Remove the five starter prototype frontend files from `frontend/` via standard Git deletion so that Ashwidha (Frontend Lead) has a clean slate to commit and push her standalone frontend repository/code without merge conflicts or clobbering.
+
+### Scope & Preservation:
+1. **Frontend Files Removed via Git Deletion:**
+   - `frontend/index.html`
+   - `frontend/styles.css`
+   - `frontend/app.js`
+   - `frontend/README.md`
+   - `frontend/PROJECT_BOOK.md`
+   - Preserved `frontend/.gitkeep` so the `frontend/` directory remains tracked and ready for Ashwidha's push.
+2. **Model Assets Strictly Preserved:**
+   - `models/DRISHTI_1.ipynb` (Rudra's model development notebook, 5,539,474 bytes)
+   - `models/RetinaExplain_AI_v2_final.keras` (Rudra's trained model artifact, 17,112,541 bytes)
+   - Zero changes made to `models/`.
+3. **Backend & Architecture Intact:**
+   - FastAPI application, SQLite database, services, and API endpoints preserved.
+   - `backend/tests/test_api.py`: 14/14 core API and validation tests passed.
+   - Frontend static serving tests in `test_frontend_integration.py` return expected HTTP 404 while frontend assets are intentionally absent, awaiting Ashwidha's incoming build.
+4. **Standalone Reference Package:**
+   - Clean starter frontend deliverable preserved in `drishti-ai-normal-frontend.zip` for Ashwidha's reference if needed.
+
+---
+
+## 22. Milestone: Full-Stack Integration Complete (Frontend, FastAPI, SQLite, Keras 3 Model & Grad-CAM)
+
+### Overview & Objectives Achieved:
+Successfully unified the full DRISHTI-AI application into a cohesive, locally runnable medical AI screening-support system:
+1. **Ashwidha's Frontend:** Preserved clean HTML5/CSS3/Vanilla JS interface (no 3D/Three.js overhead), connected all API endpoints, added real-time backend and model readiness indicators, 5-class probability visualization, genuine Grad-CAM heatmap viewer, and interactive SQLite session history table.
+2. **FastAPI Backend:** Expanded endpoints to safely store uploaded images locally under path-traversal-guarded UUID filenames, invoke real model inference, persist results, and serve Grad-CAM overlays via `GET /api/v1/screenings/{screening_id}/gradcam`.
+3. **SQLite Database:** Enhanced `database.py` with `update_screening_analysis()` to persist predicted class, confidence, JSON-serialized class probabilities, and Grad-CAM availability directly against existing records without row duplication.
+4. **Keras Model Service:** Verified and loaded `models/RetinaExplain_AI_v2_final.keras` once on startup with `compile=False`.
+5. **Grad-CAM Explainability:** Implemented genuine activation mapping using `tf.GradientTape` on the backbone `top_activation` convolutional layer, overlaying a Jet colormap on the original RGB fundus image.
+6. **Automated & E2E Testing:** Expanded test suite from 20 to 26 passing tests with zero regressions; validated with real dataset fundus images from APTOS 2019.
+
+### 1. Python Environment & Dependency Verification
+- **Python Runtime:** Python 3.13.0rc3 (`backend\.venv\Scripts\python.exe`)
+- **Key Installed Packages:**
+  - `tensorflow==2.21.0`
+  - `keras==3.15.1`
+  - `numpy==2.5.3`
+  - `h5py==3.14.0`
+  - `pillow==12.1.1`
+  - `fastapi==0.115.12`
+  - `uvicorn==0.34.0`
+  - `pytest==9.1.1`
+- **Dependency Tracking:** Updated `backend/requirements.txt` with compatible versions.
+
+### 2. Model Audit & Architecture Verification
+- **Artifact:** `models/RetinaExplain_AI_v2_final.keras` (17,112,541 bytes)
+- **Source Notebook:** `models/DRISHTI_1.ipynb`
+- **Architecture Details:**
+  - Backbone: `efficientnetb0` (ImageNet pre-trained)
+  - Head: `GlobalAveragePooling2D` -> `Dropout(0.3)` -> `Dense(5, activation="softmax")`
+  - Input Shape: `(1, 224, 224, 3)` RGB float32
+  - Preprocessing Rule: EfficientNetB0 incorporates internal rescaling/normalization layers. Input values must remain in `[0, 255]` float32 range (do not divide by 255 twice).
+  - Target Classes (Verified Index Order from Notebook):
+    - `0: No DR` (`class_0_no_dr`)
+    - `1: Mild` (`class_1_mild`)
+    - `2: Moderate` (`class_2_moderate`)
+    - `3: Severe` (`class_3_severe`)
+    - `4: Proliferative DR` (`class_4_proliferative_dr`)
+  - Reported Experimental Metrics: 73.31% Test Accuracy, 73.97% Validation Accuracy (treated strictly as experimental prototype metric, not proof of clinical efficacy).
+
+### 3. Grad-CAM Implementation Architecture
+- **Target Convolutional Layer:** `top_activation` (the final activation stage of the EfficientNetB0 backbone before global average pooling).
+- **Submodel Extraction:** Created a functional submodel `keras.Model(inputs=backbone.input, outputs=top_conv.output)` chained through the classification head layers (`gap`, `dropout`, `dense`) inside `tf.GradientTape`.
+- **Computation Pipeline:**
+  1. Record forward pass and extract feature maps $A^k$ and predicted class score $y^c$.
+  2. Compute gradients $\frac{\partial y^c}{\partial A^k}$.
+  3. Global average pool gradients to obtain neuron importance weights $\alpha_k^c$.
+  4. Compute weighted sum $\sum_k \alpha_k^c A^k$, apply ReLU, and normalize to $[0, 1]$.
+  5. Upsample 2D heatmap to original input resolution using bilinear interpolation.
+  6. Map through Jet colormap and blend 60/40 alpha with the original RGB fundus image.
+  7. Encode as standard PNG bytes and cache in local storage alongside the screening ID.
+
+### 4. Storage & SQLite Persistence Architecture
+- **Storage Service (`backend/app/services/image_service.py`):**
+  - Configurable directory via `DRISHTI_UPLOAD_DIR` (defaults to `backend/uploads`).
+  - Strict path-traversal protection: Filenames are derived strictly from screening UUID (`<screening_id>.<ext>` and `<screening_id>_gradcam.png`). Client-supplied filenames are never used as filesystem paths.
+  - Automatic rollback/cleanup: Partial upload files are removed if database insertion fails.
+- **Database Service (`backend/app/database.py`):**
+  - Retains existing schema in `screenings` table.
+  - Added `update_screening_analysis(screening_id, prediction, confidence, class_probabilities_json, gradcam_available)` to record inference results without creating duplicate rows.
+
+### 5. API Endpoints Contract
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health` | System status, model status (`ready`), model name, supported classes |
+| `POST` | `/api/v1/screenings/upload` | Multipart image upload, technical usability validation, safe disk caching, SQLite record creation |
+| `POST` | `/api/v1/screenings/{screening_id}/analyze` | Triggers model inference, Grad-CAM generation, and SQLite record update |
+| `GET` | `/api/v1/screenings/{screening_id}/gradcam` | Serves genuine Grad-CAM PNG heatmap overlay |
+| `GET` | `/api/v1/screenings/{screening_id}` | Retrieves full screening record including prediction and usability flags |
+| `GET` | `/api/v1/screenings?page=1&page_size=20` | Paginated listing of all historical screenings |
+
+### 6. Automated Testing Results
+- **Pytest Suite (`backend/tests`):** **26 passed in 22.68s**
+  - `backend/tests/test_api.py` (15 tests): Health check, image validation, upload flows, model unavailable handling, corrupt input rejection.
+  - `backend/tests/test_frontend_integration.py` (6 tests): Frontend index serving, styles, JavaScript, API base connectivity, CORS headers.
+  - `backend/tests/test_model_service.py` (5 tests): Real model loading, preprocessing, 5-class output validation, genuine Grad-CAM generation, and missing image error handling.
+- **Real E2E Dataset Validation:**
+  - Tested with `datasets/aptos2019/classwise_images/class_0_no_dr/002c21358ce6.png`:
+    - Prediction: `No DR` (74.89% confidence)
+    - Grad-CAM: Generated PNG overlay (988,073 bytes)
+  - Tested with `datasets/aptos2019/classwise_images/class_4_proliferative_dr/001639a390f0.png`:
+    - Prediction: `Moderate` (47.86%) / `Proliferative DR` (39.86%), `No DR` (0.53%)
+    - Grad-CAM: Generated PNG overlay successfully
+
+### 7. Local Startup Commands (Windows PowerShell)
+```powershell
+# Option 1: Unified Application (Serves Frontend + API on Port 8000)
+cd D:\drishti-ai
+.\backend\.venv\Scripts\Activate.ps1
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --app-dir backend
+
+# Option 2: Standalone Static Dev Server (Port 8080) with Backend on Port 8000
+# Terminal 1 (Backend):
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --app-dir backend
+# Terminal 2 (Frontend):
+python -m http.server 8080 --directory frontend
+```
+
+### 8. Clinical & Regulatory Guardrails
+- **Honest Metrics:** Test accuracy is documented as 73.31% (experimental prototype).
+- **Mandatory Disclaimer:** Displayed prominently on both frontend and backend documentation stating DRISHTI-AI is for research/triage support only and is not a certified medical device.
+- **Usability Heuristics:** Stamped as preliminary technical checks, not clinically certified image quality assurance.
+
+---
+
+## 23. Milestone: Final Live Integration Verification & E2E Validation (Phases 1–12)
+
+### 1. Final Inspection & Environment Audit (Phases 1 & 2)
+- **Workspace:** `D:\drishti-ai` (branch: `main`).
+- **Verified Backups & Model Files:**
+  - `models/DRISHTI_1.ipynb` (5,539,474 bytes)
+  - `models/RetinaExplain_AI_v2_final.keras` (17,112,541 bytes)
+  - Preserved `.bak` files: `database.py.bak`, `model_service.py.bak`, `screenings.py.bak`, `app.js.bak`, `index.html.bak` (safely ignored by `.gitignore`).
+- **Runtime Environment:**
+  - Python: `3.13.0rc3`
+  - TensorFlow: `2.21.0`
+  - Keras: `3.15.1`
+  - NumPy: `2.5.3`
+  - Pillow: `12.3.0`
+  - FastAPI: `0.143.0`
+  - Uvicorn: `0.54.0`
+  - Pytest: `9.1.1`
+- **Model Architecture & Mapping:**
+  - Input: `(None, 224, 224, 3)` RGB float32 in range `[0, 255]`.
+  - Output: `(None, 5)` softmax probabilities.
+  - Verified class order: `0: No DR`, `1: Mild`, `2: Moderate`, `3: Severe`, `4: Proliferative DR`.
+
+### 2. Live Application Startup (Phase 3)
+- Launched unified service: `python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --app-dir backend`.
+- Verified endpoints:
+  - `http://127.0.0.1:8000/` -> HTTP 200 (served Ashwidha's frontend `index.html`).
+  - `http://127.0.0.1:8000/health` -> HTTP 200 (`model_status: "ready"`).
+  - `http://127.0.0.1:8000/docs` -> HTTP 200 (Swagger OpenAPI UI).
+
+### 3. Frontend Browser Verification (Phase 4)
+- **UI & Layout:** Original clean, non-3D interface loaded without errors.
+- **Status Indicators:** "Backend online" and "Model ready (5-class)" badges dynamically rendered.
+- **Responsiveness:** Tested and verified across desktop (1280x800) and mobile (375x812) viewports.
+- **Console Inspection:** 0 JavaScript or CSS console errors detected.
+
+### 4. Real Live End-to-End Test Results (Phases 5–8)
+Tested against live running server with real dataset images from `datasets/aptos2019/classwise_images/`:
+- **Image 1 (`class_0_no_dr/002c21358ce6.png`):**
+  - `POST /api/v1/screenings/upload` -> HTTP 201 (`screening_id: "bf54b9cc-714a-4c34-bc02-1c130b9b532e"`).
+  - Usability heuristics extracted: Width: 1050, Height: 1050, Mean brightness: 85.5, Contrast: 46.5, Status: `acceptable`.
+  - Local disk storage: `backend/uploads/bf54b9cc-714a-4c34-bc02-1c130b9b532e.png` (975,218 bytes).
+  - SQLite persistence: Row created in `screenings` table with `validation_passed = 1`.
+  - `POST /api/v1/screenings/bf54b9cc-714a-4c34-bc02-1c130b9b532e/analyze` -> HTTP 200.
+    - Prediction: `No DR` (74.89% confidence).
+    - Probabilities: No DR (0.7489), Mild (0.1784), Moderate (0.0555), Severe (0.0125), Proliferative DR (0.0047).
+  - `GET /api/v1/screenings/bf54b9cc-714a-4c34-bc02-1c130b9b532e/gradcam` -> HTTP 200 (`image/png`, 988,073 bytes, dimensions 1050x1050 matching original).
+- **Image 2 (`class_4_proliferative_dr/001639a390f0.png`):**
+  - `POST /api/v1/screenings/upload` -> HTTP 201 (`screening_id: "df330b7e-edfb-49f7-9453-d9865f7cac9d"`).
+  - `POST /api/v1/screenings/df330b7e-edfb-49f7-9453-d9865f7cac9d/analyze` -> HTTP 200.
+    - Prediction: `Moderate` (47.86%) / `Proliferative DR` (39.86%), `No DR` (0.53%).
+  - `GET /api/v1/screenings/df330b7e-edfb-49f7-9453-d9865f7cac9d/gradcam` -> HTTP 200 (`image/png`, 2,955,274 bytes, dimensions 3216x2136 matching original).
+- **Idempotency & History:**
+  - Repeated analysis of same screening ID updated record in place without duplicate row creation.
+  - `GET /api/v1/screenings?page=1&page_size=20` correctly returned all screenings in pagination.
+  - Unknown UUID returned HTTP 404; non-image upload returned HTTP 415.
+
+### 5. Automated Pytest Suite Results (Phase 9)
+Ran verbose pytest command: `.\backend\.venv\Scripts\python.exe -m pytest backend\tests -v`
+- **Result:** **26 passed in 67.01s (0:01:07)** with 0 failures:
+  - `backend/tests/test_api.py`: 15 passed
+  - `backend/tests/test_frontend_integration.py`: 6 passed
+  - `backend/tests/test_model_service.py`: 5 passed
+
+### 6. Git Review & Strict Non-Commit Compliance (Phase 12)
+- Working tree checked with `git status`.
+- Zero staged files, zero commits created, zero pushes.
+- All integration and test verification changes kept local for review.
+
+
+
 

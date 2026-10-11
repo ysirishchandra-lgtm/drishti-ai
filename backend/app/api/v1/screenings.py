@@ -1,11 +1,18 @@
 """Screenings API Router for DRISHTI-AI v1."""
 from datetime import datetime, timezone
+import logging
 import os
 import uuid
 from typing import Optional
-from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, File, HTTPException, Query, Response, UploadFile, status
 
-from app.database import get_screening, init_db, list_screenings, save_screening
+from app.database import (
+    get_screening,
+    init_db,
+    list_screenings,
+    save_screening,
+    update_screening_analysis,
+)
 from app.schemas.screening import (
     ScreeningAnalyzeResponse,
     ScreeningListResponse,
@@ -16,8 +23,15 @@ from app.services.image_service import (
     ImageValidationError,
     ImageValidationService,
     MAX_IMAGE_SIZE_BYTES,
+    delete_screening_image,
+    read_gradcam_image,
+    read_screening_image,
+    save_gradcam_image,
+    save_screening_image,
 )
 from app.services.model_service import ModelServiceUnavailableError, model_service
+
+logger = logging.getLogger("drishti.screenings")
 
 router = APIRouter(prefix="/screenings", tags=["Screenings"])
 
@@ -33,7 +47,8 @@ async def upload_screening_image(
 ):
     """Accept a retinal image upload, enforce strict format and dimension validations,
 
-    extract technical usability heuristics, and generate a persistent screening record.
+    extract technical usability heuristics, securely retain image for analysis,
+    and generate a persistent screening record.
     """
     if not file.filename:
         raise HTTPException(
@@ -61,7 +76,7 @@ async def upload_screening_image(
             status_code=exc.status_code,
             detail=exc.message
         )
-    except Exception as exc:
+    except Exception:
         # Prevent stack trace leakage
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -72,7 +87,17 @@ async def upload_screening_image(
     screening_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc)
 
-    # Prepare screening record
+    # Secure local storage: persist image bytes for analysis pipeline
+    try:
+        save_screening_image(screening_id, content, val_result.format)
+    except Exception as exc:
+        logger.error(f"Failed to save image bytes for screening {screening_id}: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to store uploaded image for processing."
+        )
+
+    # Prepare screening metadata record
     record = {
         "screening_id": screening_id,
         "created_at": created_at.isoformat(),
@@ -92,8 +117,16 @@ async def upload_screening_image(
         "notes": None,
     }
 
-    # Persist in SQLite
-    save_screening(record)
+    # Persist in SQLite with rollback on failure
+    try:
+        save_screening(record)
+    except Exception as exc:
+        delete_screening_image(screening_id)
+        logger.error(f"Failed to persist screening record {screening_id} in SQLite: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database persistence error while recording screening metadata."
+        )
 
     message = "Image successfully verified and usability heuristics extracted."
     if val_result.quality_metrics.heuristic_status != "acceptable":
@@ -136,7 +169,7 @@ async def analyze_screening(screening_id: str):
     if not model_service.is_configured():
         return ScreeningAnalyzeResponse(
             screening_id=screening_id,
-            model_status="not_configured",
+            model_status=model_service.get_status(),
             analysis_available=False,
             prediction=None,
             confidence=None,
@@ -146,20 +179,106 @@ async def analyze_screening(screening_id: str):
             message="Diabetic Retinopathy AI model is not configured. Awaiting verified model weights and evaluation from AI lead (Rudra)."
         )
 
-    # When model is configured:
-    try:
-        # Stub for future integration when Rudra provides weights
-        return ScreeningAnalyzeResponse(
-            screening_id=screening_id,
-            model_status="ready",
-            analysis_available=False,
-            message="Model loaded but pipeline execution pending."
+    # Read image bytes from local secure storage
+    image_bytes = read_screening_image(screening_id)
+    if not image_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Stored image for screening record '{screening_id}' not found. Please re-upload the image."
         )
+
+    # Execute real model inference
+    try:
+        inf_result = model_service.predict(image_bytes)
     except ModelServiceUnavailableError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=exc.message
         )
+    except Exception as exc:
+        logger.error(f"Inference error for screening {screening_id}: {exc}", exc_info=True)
+        # Update record with error status
+        update_screening_analysis(screening_id, {
+            "model_status": "error",
+            "analysis_available": False,
+            "prediction": None,
+            "confidence": None,
+            "class_probabilities": None,
+            "gradcam_available": False,
+            "notes": "Model inference failed during processing."
+        })
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Model inference failed to process the image."
+        )
+
+    # Generate genuine Grad-CAM heatmap visualization if supported
+    gradcam_available = False
+    gradcam_url = None
+    if inf_result.get("gradcam_available"):
+        try:
+            gradcam_bytes = model_service.generate_gradcam(
+                image_bytes=image_bytes,
+                target_class=inf_result.get("predicted_index")
+            )
+            if gradcam_bytes:
+                save_gradcam_image(screening_id, gradcam_bytes)
+                gradcam_available = True
+                gradcam_url = f"/api/v1/screenings/{screening_id}/gradcam"
+        except Exception as cam_exc:
+            logger.warning(f"Grad-CAM generation failed for screening {screening_id}: {cam_exc}")
+            gradcam_available = False
+            gradcam_url = None
+
+    # Persist analysis results against existing SQLite record without duplicating
+    update_screening_analysis(screening_id, {
+        "model_status": "ready",
+        "analysis_available": True,
+        "prediction": inf_result["prediction"],
+        "confidence": inf_result["confidence"],
+        "class_probabilities": inf_result["class_probabilities"],
+        "gradcam_available": gradcam_available,
+        "notes": None
+    })
+
+    return ScreeningAnalyzeResponse(
+        screening_id=screening_id,
+        model_status="ready",
+        analysis_available=True,
+        prediction=inf_result["prediction"],
+        confidence=inf_result["confidence"],
+        class_probabilities=inf_result["class_probabilities"],
+        gradcam_available=gradcam_available,
+        gradcam_url=gradcam_url,
+        message="Model inference completed successfully using verified DR classifier."
+    )
+
+
+@router.get(
+    "/{screening_id}/gradcam",
+    summary="Retrieve generated Grad-CAM heatmap overlay image"
+)
+async def get_screening_gradcam(screening_id: str):
+    """Serve the genuine Grad-CAM activation heatmap overlay as a PNG image."""
+    record = get_screening(screening_id)
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Screening record '{screening_id}' not found."
+        )
+
+    gradcam_bytes = read_gradcam_image(screening_id)
+    if not gradcam_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Grad-CAM visualization is not available for this screening."
+        )
+
+    return Response(
+        content=gradcam_bytes,
+        media_type="image/png",
+        headers={"Cache-Control": "private, max-age=3600"}
+    )
 
 
 @router.get(

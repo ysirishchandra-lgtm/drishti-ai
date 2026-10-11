@@ -247,17 +247,95 @@ Lists screening records with pagination, ordered newest to oldest.
 
 ---
 
+### 2.5 Retrieve Grad-CAM Heatmap Activation Overlay
+Serves the binary PNG activation heatmap overlay generated during screening analysis. Blends the original fundus photograph with a Jet colormap activation map (60% fundus / 40% heatmap).
+
+- **Method:** `GET`
+- **Path:** `/api/v1/screenings/{screening_id}/gradcam`
+- **Response Header:** `Content-Type: image/png`
+- **Status Code:** `200 OK`
+
+#### Error Responses:
+- **`404 Not Found`** (Screening record does not exist or Grad-CAM overlay was not generated):
+  ```json
+  {
+    "detail": "Grad-CAM explanation heatmap is not available for screening '{id}'."
+  }
+  ```
+
+---
+
 ## 3. Frontend Integration Guide (for Ashwidha)
 
-1. **Base URL:** Set API base to `http://127.0.0.1:8000`.
-2. **Uploading Images:** Use `FormData` with key name `file`:
-   ```javascript
-   const formData = new FormData();
-   formData.append('file', selectedFile);
-   const res = await axios.post('http://127.0.0.1:8000/api/v1/screenings/upload', formData, {
-     headers: { 'Content-Type': 'multipart/form-data' }
-   });
-   ```
-3. **Model Readiness:** The frontend can check `res.data.model_status`. When `not_configured`, display a banner:  
-   *"AI Model Verification in Progress — Clinical Quality Review Active"*.
-4. **Error Handling:** Check `error.response.data.detail` to display friendly alerts for oversized images (413) or unsupported formats (415).
+### 3.1 Environment & Network Setup
+- **Backend Base URL:** `http://127.0.0.1:8000`
+- **Supported Frontend Origins (CORS Allowed):**
+  - `http://localhost:5173`
+  - `http://127.0.0.1:5173`
+
+### 3.2 Frontend Quick-Start Commands (Vite + React)
+In a new terminal, Ashwidha can initialize and launch her Vite frontend inside `frontend/`:
+```bash
+# 1. Navigate to frontend folder
+cd frontend
+
+# 2. Initialize Vite + React project (if not already done)
+npm create vite@latest . -- --template react
+
+# 3. Install dependencies
+npm install
+npm install axios lucide-react   # Recommended for API calls & healthcare icons
+
+# 4. Start local development server (runs on port 5173)
+npm run dev
+```
+
+### 3.3 Image Upload Specifications
+- **Field Name:** Must be sent as `file` in `multipart/form-data`.
+- **Accepted Formats:** JPEG (`.jpg`, `.jpeg`), PNG (`.png`), WebP (`.webp`).
+- **Maximum File Size:** 15 MB (Server returns HTTP 413 `CONTENT_TOO_LARGE` if exceeded).
+- **Minimum Dimensions:** 200 x 200 pixels (Server returns HTTP 400 `DIMENSIONS_TOO_SMALL` if smaller).
+
+### 3.4 Uploading from React / Axios
+```javascript
+import axios from 'axios';
+
+const API_BASE = 'http://127.0.0.1:8000';
+
+export async function uploadFundusImage(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await axios.post(`${API_BASE}/api/v1/screenings/upload`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data; // Returns ScreeningUploadResponse
+}
+```
+
+### 3.5 Handling Quality Heuristics in UI
+When an image is uploaded, inspect `response.data.image_quality`:
+- `heuristic_status === "acceptable"`: Display green badge: "Image Quality Passed (Preliminary Heuristic)".
+- `heuristic_status === "borderline"`: Display yellow badge: "Illumination Warning" and list items from `rejection_reasons` (e.g. low contrast or dark image).
+- `heuristic_status === "unusable"`: Display warning advising technician to recapture photograph.
+- Always include disclaimer note: *"Preliminary technical usability heuristics only. Not a clinically certified quality evaluation."*
+
+### 3.6 Handling AI Model Status (`not_configured`)
+- When triggering `POST /api/v1/screenings/{screening_id}/analyze`, inspect `response.data.model_status`.
+- **Current Baseline:** `model_status: "not_configured"`, `analysis_available: false`.
+- **UI Presentation:** Show an info banner:
+  > **AI Screening Model Verification in Progress**  
+  > The deep-learning classification pipeline is currently awaiting verified clinical model weights. Technician triage and image quality checks remain fully active.
+- **Strict Clinical Integrity:** Never mock or fabricate confidence percentages or DR severity stages when `model_status` is not `"ready"`.
+
+### 3.7 Error Handling Matrix for UI Toast / Alerts
+| HTTP Status | Error Detail Example | Recommended UI Message |
+|---|---|---|
+| `400 Bad Request` | `"Uploaded file is corrupted or could not be decoded..."` | *"The selected file is corrupted or could not be decoded. Please select a valid image."* |
+| `400 Bad Request` | `"Image dimensions (150x150 px) are smaller than required minimum..."` | *"Image resolution is too low. Please upload an image at least 200x200 pixels."* |
+| `413 Content Too Large` | `"Uploaded image exceeds maximum allowable limit of 15 MB."` | *"Image file size exceeds the 15 MB limit. Please compress or select a smaller image."* |
+| `415 Unsupported Media Type` | `"Unsupported or unrecognized file format. Allowed formats are JPEG, PNG, and WebP."` | *"Unsupported file format. Please upload a JPEG, PNG, or WebP fundus photograph."* |
+| `404 Not Found` | `"Screening record '{id}' not found."` | *"Screening session not found or expired. Please re-upload the image."* |
+| `500 Server Error` | `"An internal server error occurred..."` | *"Server encountered an issue. Please verify backend connection and try again."* |

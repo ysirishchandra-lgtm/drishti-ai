@@ -57,9 +57,11 @@ data/*
 backend/uploads/
 uploads/
 
-# Large ML model weights
+# Large ML model weights (preserve trained hackathon artifact & notebook)
 models/*
 !models/.gitkeep
+!models/RetinaExplain_AI_v2_final.keras
+!models/DRISHTI_1.ipynb
 *.pth
 *.pt
 *.onnx

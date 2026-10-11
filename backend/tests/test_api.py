@@ -60,15 +60,16 @@ def create_synthetic_image(width=500, height=500, img_format="JPEG", color=(180,
 # Test 1: Health Endpoint & Model Status
 # -------------------------------------------------------------
 def test_health_endpoint(client):
-    """GET /health must return ok status, correct project metadata, and model_status as 'not_configured'."""
+    """GET /health must return ok status, correct project metadata, and model readiness."""
     response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ok"
     assert data["project"] == "DRISHTI-AI"
     assert data["version"] == "0.1.0"
-    assert data["model_status"] == "not_configured"
-    assert data["model_name"] is None
+    assert data["model_status"] in ("ready", "not_configured")
+    if data["model_status"] == "ready":
+        assert data["model_name"] == "RetinaExplain_AI_v2_final"
     assert "No DR" in data["supported_classes"]
     assert "Proliferative DR" in data["supported_classes"]
     assert "timestamp" in data
@@ -89,7 +90,7 @@ def test_upload_valid_jpeg(client):
     assert data["file_name"] == "test_fundus.jpg"
     assert data["validation_passed"] is True
     assert data["mime_type"] == "image/jpeg"
-    assert data["model_status"] == "not_configured"
+    assert data["model_status"] in ("ready", "not_configured")
     assert data["human_review_status"] == "pending"
     assert data["follow_up_status"] == "none"
 
@@ -192,8 +193,12 @@ def test_reject_oversized_payload(client):
 # -------------------------------------------------------------
 # Test 8: Analysis Trigger When Model Not Configured
 # -------------------------------------------------------------
-def test_analyze_when_model_not_configured(client):
+def test_analyze_when_model_not_configured(client, monkeypatch):
     """POST /api/v1/screenings/{id}/analyze must NOT fabricate predictions when model is not configured."""
+    from app.services.model_service import model_service
+    monkeypatch.setattr(model_service, "is_configured", lambda: False)
+    monkeypatch.setattr(model_service, "get_status", lambda: "not_configured")
+
     # First upload an image
     jpeg_bytes = create_synthetic_image(width=500, height=500, img_format="JPEG")
     files = {"file": ("test_analysis.jpg", jpeg_bytes, "image/jpeg")}
@@ -211,6 +216,41 @@ def test_analyze_when_model_not_configured(client):
     assert data["confidence"] is None
     assert data["class_probabilities"] is None
     assert "Awaiting verified model weights" in data["message"]
+
+
+def test_analyze_with_verified_model(client):
+    """POST /api/v1/screenings/{id}/analyze runs genuine inference and produces Grad-CAM when model is ready."""
+    jpeg_bytes = create_synthetic_image(width=500, height=500, img_format="JPEG")
+    files = {"file": ("test_real_infer.jpg", jpeg_bytes, "image/jpeg")}
+    upload_res = client.post("/api/v1/screenings/upload", files=files)
+    screening_id = upload_res.json()["screening_id"]
+
+    analyze_res = client.post(f"/api/v1/screenings/{screening_id}/analyze")
+    assert analyze_res.status_code == 200
+    data = analyze_res.json()
+    assert data["screening_id"] == screening_id
+    assert data["model_status"] == "ready"
+    assert data["analysis_available"] is True
+    assert data["prediction"] in ["No DR", "Mild", "Moderate", "Severe", "Proliferative DR"]
+    assert 0.0 <= data["confidence"] <= 1.0
+    assert len(data["class_probabilities"]) == 5
+    assert data["gradcam_available"] is True
+    assert data["gradcam_url"] == f"/api/v1/screenings/{screening_id}/gradcam"
+
+    # Test GET gradcam endpoint
+    cam_res = client.get(data["gradcam_url"])
+    assert cam_res.status_code == 200
+    assert cam_res.headers["content-type"] == "image/png"
+    assert len(cam_res.content) > 100
+
+    # Verify database persistence
+    get_res = client.get(f"/api/v1/screenings/{screening_id}")
+    assert get_res.status_code == 200
+    rec = get_res.json()
+    assert rec["analysis_available"] is True
+    assert rec["prediction"] == data["prediction"]
+    assert rec["gradcam_available"] is True
+
 
 
 def test_analyze_nonexistent_screening(client):

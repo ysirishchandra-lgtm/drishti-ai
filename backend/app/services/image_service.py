@@ -9,6 +9,7 @@ from dataclasses import dataclass
 import io
 import math
 import os
+import re
 from typing import List, Optional, Tuple
 from PIL import Image, ImageOps, ImageStat
 
@@ -217,3 +218,103 @@ class ImageValidationService:
             rejection_reasons=rejection_reasons,
             disclaimer="Preliminary technical usability heuristics only. Not a clinically validated image quality evaluation."
         )
+
+
+# Safe Local Image Storage for Screening Ingestion & Analysis Pipeline
+DEFAULT_UPLOAD_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "uploads"
+)
+
+
+def get_upload_dir() -> str:
+    """Return local upload directory path, honoring environment variable DRISHTI_UPLOAD_DIR."""
+    path = os.getenv("DRISHTI_UPLOAD_DIR", DEFAULT_UPLOAD_DIR)
+    os.makedirs(path, exist_ok=True)
+    return os.path.abspath(path)
+
+
+def save_screening_image(screening_id: str, image_bytes: bytes, format_str: str) -> str:
+    """Safely persist image bytes for an uploaded screening, preventing directory traversal.
+    
+    File name is strictly derived from the generated screening_id and validated format.
+    Never uses client-supplied filenames.
+    """
+    if not re.match(r"^[a-zA-Z0-9_\-]+$", screening_id):
+        raise ValueError("Invalid screening_id for local storage.")
+    
+    ext_map = {"JPEG": ".jpg", "PNG": ".png", "WEBP": ".webp"}
+    ext = ext_map.get(format_str.upper(), ".bin")
+    
+    upload_dir = get_upload_dir()
+    safe_filename = f"{screening_id}{ext}"
+    target_path = os.path.abspath(os.path.join(upload_dir, safe_filename))
+    
+    # Path traversal guard
+    if not target_path.startswith(upload_dir + os.sep) and target_path != upload_dir:
+        raise ValueError("Target path escapes uploads directory.")
+        
+    with open(target_path, "wb") as f:
+        f.write(image_bytes)
+        
+    return target_path
+
+
+def get_screening_image_path(screening_id: str) -> Optional[str]:
+    """Retrieve existing stored image path for a screening_id."""
+    if not re.match(r"^[a-zA-Z0-9_\-]+$", screening_id):
+        return None
+    upload_dir = get_upload_dir()
+    for ext in [".jpg", ".jpeg", ".png", ".webp", ".bin"]:
+        candidate = os.path.abspath(os.path.join(upload_dir, f"{screening_id}{ext}"))
+        if candidate.startswith(upload_dir + os.sep) and os.path.isfile(candidate):
+            return candidate
+    return None
+
+
+def read_screening_image(screening_id: str) -> Optional[bytes]:
+    """Read stored image bytes for an existing screening_id."""
+    path = get_screening_image_path(screening_id)
+    if not path or not os.path.isfile(path):
+        return None
+    with open(path, "rb") as f:
+        return f.read()
+
+
+def delete_screening_image(screening_id: str) -> bool:
+    """Remove stored image file upon cleanup."""
+    path = get_screening_image_path(screening_id)
+    if path and os.path.isfile(path):
+        try:
+            os.remove(path)
+            return True
+        except OSError:
+            pass
+    return False
+
+
+def save_gradcam_image(screening_id: str, image_bytes: bytes) -> str:
+    """Safely persist generated Grad-CAM heatmap visualization PNG."""
+    if not re.match(r"^[a-zA-Z0-9_\-]+$", screening_id):
+        raise ValueError("Invalid screening_id for local storage.")
+    upload_dir = get_upload_dir()
+    target_path = os.path.abspath(os.path.join(upload_dir, f"{screening_id}_gradcam.png"))
+    if not target_path.startswith(upload_dir + os.sep) and target_path != upload_dir:
+        raise ValueError("Target path escapes uploads directory.")
+    with open(target_path, "wb") as f:
+        f.write(image_bytes)
+    return target_path
+
+
+def read_gradcam_image(screening_id: str) -> Optional[bytes]:
+    """Retrieve stored Grad-CAM PNG bytes for a screening record."""
+    if not re.match(r"^[a-zA-Z0-9_\-]+$", screening_id):
+        return None
+    upload_dir = get_upload_dir()
+    target_path = os.path.abspath(os.path.join(upload_dir, f"{screening_id}_gradcam.png"))
+    if target_path.startswith(upload_dir + os.sep) and os.path.isfile(target_path):
+        with open(target_path, "rb") as f:
+            return f.read()
+    return None
+
+
